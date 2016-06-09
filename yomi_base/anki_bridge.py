@@ -156,13 +156,16 @@ class Anki:
         
     def getCards(self, modelName, onlyFirst = False):
         model = self.models().byName(modelName)
-        modelid = int(model[u"id"])
-        query = "select " + ("min(c.id)" if onlyFirst else "c.id")
-        query+= ",n.sfld,n.id from cards c "
-        query+= "join notes n on (c.nid = n.id) " 
-        query+= "where n.mid=%d" % (modelid)
-        if onlyFirst: query+= "group by n.id"
-        return self.collection().db.execute(query)
+        if model:
+          modelid = int(model[u"id"])
+          query = "select " + ("min(c.id)" if onlyFirst else "c.id")
+          query+= ",n.sfld,n.id from cards c "
+          query+= "join notes n on (c.nid = n.id) " 
+          query+= "where n.mid=%d" % (modelid)
+          if onlyFirst: query+= "group by n.id"
+          return self.collection().db.execute(query)
+        else:
+          return []
         
     
     def getCardsByNote(self, modelName, key, value):
