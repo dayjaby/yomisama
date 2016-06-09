@@ -2,6 +2,7 @@ import anki.sched
 import math
 import datetime
 import random
+import time
 
 
 
@@ -71,16 +72,17 @@ class Scheduler(anki.sched.Scheduler):
         data = anki.sched.Scheduler.deckDueList(self)
         if yomichanDeck is not None:
             for deck in filecache:
-                id = self.col.decks.id(deck)
-                if filecache[deck] is None:
-                    due = 0
-                    new = 0
-                elif self.hideMinimumGain:
-                    due = int(filecache[deck].dueness - filecache[deck].foundvocabs * self.minimumGain)
-                    new = len(filecache[deck].wordsNotFound)
-                else:
-                    due = int(filecache[deck].dueness)
-                    new = len(filecache[deck].wordsNotFound)
-                data.append([deck, id, due, 0, new])
-                self.dueCache[deck] = due
+                id = self.col.decks.id(deck,create=False)
+                if id is not None:
+                    if filecache[deck] is None:
+                        due = 0
+                        new = 0
+                    elif self.hideMinimumGain:
+                        due = int(filecache[deck].dueness - filecache[deck].foundvocabs * self.minimumGain)
+                        new = filecache[deck].count('wordsNotFound')
+                    else:
+                        due = int(filecache[deck].dueness)
+                        new = filecache[deck].count('wordsNotFound')
+                    data.append([deck, id, due, 0, new])
+                    self.dueCache[deck] = due
         return data

@@ -28,6 +28,8 @@ from yomichan import Yomichan
 from yomi_base.reader import MainWindowReader
 from yomi_base.file_state import FileState
 from yomi_base.scheduler import Scheduler
+from yomi_base.deckManager import DeckManager
+from yomi_base import profiles
 from anki.models import defaultModel,defaultField,defaultTemplate
 from anki.utils import ids2str, intTime
 
@@ -231,8 +233,8 @@ class Anki:
     def moveCards(self,cardKeys,model,deck):
         key = self.getModelKey(model)                                                  
         did = self.collection().decks.id(deck)
-        cids = [int(cid[0]) for cid in self.getCardsByNoteAndNotInDeck(profile['model'],cardKeys,did)]
-        updateCards(cids,did)
+        cids = [int(cid[0]) for cid in self.getCardsByNoteAndNotInDeck(model,cardKeys,did)]
+        self.updateCards(cids,did)
         
     def updateCards(self,cids,did):
         deck = self.collection().decks.get(did)
@@ -260,7 +262,8 @@ class YomichanPlugin(Yomichan):
         separator = QtGui.QAction(self.anki.window())
         separator.setSeparator(True)
         self.anki.addUiAction(separator)
-
+        self.profiles = profiles.getAllProfileClasses()
+        self.preventReload = False
         action = QtGui.QAction(QtGui.QIcon(':/img/img/icon_logo_32.png'), '&Yomichan...', self.anki.window())
         action.setIconVisibleInMenu(True)
         action.setShortcut('Ctrl+Y')
@@ -289,18 +292,23 @@ class YomichanPlugin(Yomichan):
     def fetchAllCards(self):
         if self.anki is None:
             return None
-        profile = self.preferences['profiles'].get('vocab')
-        if profile is None:
-            return None
-            
         allCards = dict()
-        
-        for cid,value,nid in self.anki.getCards(profile["model"]): 
-            allCards[value] = self.anki.collection().getCard(cid)
+        for p in self.profiles:
+            profile = self.preferences['profiles'].get(p)
+            d = dict()
+            if profile is None:
+                continue
+            for cid,value,nid in self.anki.getCards(profile["model"]): 
+                d[value] = self.anki.collection().getCard(cid)
+            allCards[p] = d
+                
         return allCards
 
 
     def loadAllTexts(self,rootDir=None):
+        if not hasattr(self,'i'):
+            self.i = 0
+        self.i += 1
         if rootDir is None:
             rootDir = u"Yomichan"
         
@@ -318,8 +326,10 @@ class YomichanPlugin(Yomichan):
                         fileState = oldCache[fullPath]
                         fileState.load()
                     else:
-                        fileState = FileState(path,self.preferences['stripReadings'])
+                        fileState = FileState(os.path.join(mediadir,path),self.preferences['stripReadings'],profiles=self.profiles)
                     self.fileCache[fullPath] = fileState
+                    # create deck if necessary
+                    self.anki.collection().decks.id(fullPath,create=True)
                     fileState.findVocabulary(self.anki.collection().sched,allCards,needContent=False)
             if os.path.isdir(yomimedia):
                 for root,dirs,files in os.walk(yomimedia):
@@ -336,6 +346,10 @@ class YomichanPlugin(Yomichan):
 
     def onWindowClose(self):
         self.window = None
+        ### this becomes obsolote due to onAfterStateChange
+        #if not sum(list(aqt.mw.col.sched.counts())):
+        #    aqt.mw.moveToState('deckBrowser')
+        
         
         
     def getFileCache(self):
@@ -347,6 +361,8 @@ yomichanInstance = YomichanPlugin()
 def onBeforeStateChange(state, oldState, *args):
     yomichanInstance.newestState = state
     yomichanInstance.anki.createYomichanModel()
+    if not getattr(aqt.mw.col.decks,"customDeckManager",None):
+        aqt.mw.col.decks = DeckManager(aqt.mw.col,yomichanInstance.getFileCache())
     if state == 'overview':
         did = aqt.mw.col.decks.selected()
         name = aqt.mw.col.decks.nameOrNone(did)
@@ -356,6 +372,7 @@ def onBeforeStateChange(state, oldState, *args):
             completePath = aqt.mw.col.media.dir()
             for i in path:
                 completePath = os.path.join(completePath,i)
+            # if clicked on a directory, choose deck with most due cards
             if os.path.isdir(completePath):
                 maxDue = 0
                 maxDueDeck = None
@@ -384,34 +401,49 @@ def onBeforeStateChange(state, oldState, *args):
                             else:
                                 os.startfile(openFile)
                 except:
-                    fileName = fileName #do nothing
+                    pass
                 yomichanInstance.window.showMaximized()
     elif state == 'deckBrowser':
         if not getattr(aqt.mw.col.sched,"earlyAnswerCard",None):
             aqt.mw.col.sched = Scheduler(aqt.mw.col,yomichanInstance.getFileCache,scheduleVariationPercent = yomichanInstance.preferences['scheduleVariationPercent'],weekDays = yomichanInstance.preferences['weekDays'])
-        yomichanInstance.loadAllTexts()
+        if yomichanInstance.preventReload:
+            yomichanInstance.preventReload = False
+        else:
+            yomichanInstance.loadAllTexts()
         yomichanDeck = aqt.mw.col.decks.byName(u'Yomichan')
         for name,id in aqt.mw.col.decks.children(yomichanDeck['id']):
             if name not in yomichanInstance.fileCache and aqt.mw.col.decks.get(id)['id']!=1:
                 aqt.mw.col.decks.rem(id)
-addHook('beforeStateChange',onBeforeStateChange)
-    
+                
+def onAfterStateChange(state, oldState, *args):
+    if state == 'overview':
+        did = aqt.mw.col.decks.selected()
+        name = aqt.mw.col.decks.nameOrNone(did)
+        path = name.split(u'::')
+        if len(path) > 0 and path[0] == u'Yomichan':
+            yomichanInstance.preventReload = True
+            aqt.mw.moveToState('deckBrowser')
 
+addHook('beforeStateChange',onBeforeStateChange)
+addHook('afterStateChange',onAfterStateChange)
+    
+def searchYomichanDeck(val):
+    yomichanInstance.searchPath = val.replace(u"::",os.sep)
+    yomichanInstance.loadAllTexts(val.replace(u"::",os.sep))
+    words = set()
+    for text,state in yomichanInstance.fileCache.items():
+        if state is not None:
+            for k,profile in state.profiles.items():
+                words |= set(profile['wordsAll'].keys())
+    arg = "(" + ",".join(["\""+val+"\"" for val in words]) + ")"
+    where = "(n.sfld in " + arg + ")"
+    return where
 
 def onSearch(cmds):
     def findByYomichanFile(oldfn):
         def inner((val,args)):
-            if(val.startswith(u"Yomichan")):
-                yomichanInstance.searchPath = val.replace(u"::",os.sep)
-                yomichanInstance.loadAllTexts(val.replace(u"::",os.sep))
-                words = set()
-                for text,state in yomichanInstance.fileCache.items():
-                    if state is not None:
-                        words |= set(state.wordsAll.keys())
-                arg = "(" + ",".join(["\""+val+"\"" for val in words]) + ")"
-                where = "(n.sfld in " + arg + ")"
-                yomichanInstance.where = where
-                return where
+            if val.split("::")[0]=="Yomichan":
+                return searchYomichanDeck(val)
             else:
                 return oldfn((val,args))
         return inner    

@@ -7,8 +7,13 @@
     "rememberTextContent": false,
     "loadRecentFile": false,
     "maxResults": 20,
+    "onlineDicts": {
+        "goo": {
+        }
+    },
     "profiles": {
         "kanji": {
+            "visible": true,
             "deck": "YomichanCards", 
             "fields": {
                 "Kanji": "{character}", 
@@ -18,7 +23,8 @@
             }, 
             "model": "YomichanKanji"
         },
-        "vocab": {
+        "vocabulary": {
+            "visible": true,
             "deck": "YomichanCards", 
             "fields": {
                 "Examples+": "{line} (<a href=\"file:///{filename}\">File</a>)", 
@@ -33,6 +39,7 @@
             "model": "Yomichan"
         },
         "sentence": {
+            "visible": true,
             "deck": "YomichanCards", 
             "fields": {
                 "Expression": "{t0}", 
@@ -60,6 +67,7 @@
     "allowEditing": true,
     "firstRun": true,
     "unlockVocab":true,
+    "hideTranslation":true,
     "japanese":true,
     "korean":false,
     "chinese":false,

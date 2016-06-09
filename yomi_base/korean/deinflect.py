@@ -27,7 +27,7 @@ class Deinflector:
     def __init__(self,path):
         try:
             self.javascript = execjs.compile(open(path).read())
-        except Exception as e:
+        except:
             self.pyv8 = False
         else:
             self.pyv8 = True

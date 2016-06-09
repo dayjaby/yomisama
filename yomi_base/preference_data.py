@@ -20,6 +20,16 @@ import codecs
 import json
 import operator
 import os
+import collections
+
+def update(d, u):
+    for k, v in u.iteritems():
+        if isinstance(v, collections.Mapping):
+            r = update(d.get(k, {}), v)
+            d[k] = r
+        else:
+            d[k] = u[k]
+    return d
 
 
 class Preferences(object):
@@ -36,6 +46,8 @@ class Preferences(object):
     def __setitem__(self, name, value):
         self.settings[name] = value
 
+    def __delitem__(self, name):
+        del self.settings[name]
 
     def load(self):
         with codecs.open(self.defaults, 'rb', 'utf-8') as fp:
@@ -44,17 +56,21 @@ class Preferences(object):
         try:
             if os.path.exists(self.filename):
                 with codecs.open(self.filename, 'rb', 'utf-8') as fp:
-                    self.settings.update(json.load(fp))
+                    update(self.settings,json.load(fp))
             else:
                 with codecs.open(self.defaults, 'rb', 'utf-8') as fp:
-                    self.settings.update(json.load(fp))
+                    update(self.settings,json.load(fp))
+            if 'vocab' in self['profiles']:
+                self['profiles']['vocabulary'] = self['profiles']['vocab']
+                del self['profiles']['vocab']
+                
         except ValueError:
             pass
 
 
     def save(self):
         with codecs.open(self.filename, 'wb', 'utf-8') as fp:
-            json.dump(self.settings, fp, indent=4, sort_keys=True)
+            json.dump(self.settings, fp, indent=4, sort_keys=True, ensure_ascii=False)
 
 
     def filePosition(self, filename):

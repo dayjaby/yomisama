@@ -26,15 +26,12 @@ class Dictionary:
         self.indices = set()
 
 
-    def findTerm(self, word, wildcards=False,reading=None):
+    def findTerm(self, word, wildcards=False):
         self.requireIndex('Terms', 'expression')
         self.requireIndex('Terms', 'reading')
 
         cursor = self.db.cursor()
-        if reading is None:
-            cursor.execute('SELECT * FROM Terms WHERE expression {0} ? OR reading=? LIMIT 100'.format('LIKE' if wildcards else '='), (word, word))
-        else:
-            cursor.execute('SELECT * FROM Terms WHERE (expression=? OR reading=?) AND reading=? LIMIT 100', (word,word, reading))
+        cursor.execute('SELECT * FROM Terms WHERE expression {0} ? OR reading=? LIMIT 100'.format('LIKE' if wildcards else '='), (word, word))
 
         results = list()
         for expression, reading, glossary, tags in cursor.fetchall():

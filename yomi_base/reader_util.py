@@ -47,7 +47,7 @@ def findLine(content, position):
       line = content[startLine+1:]
     else:
       line = content[startLine+1:endLine]
-    return line  
+    return line, startLine+1
     
 
 def findSentence(content, position):
@@ -63,7 +63,7 @@ def findSentence(content, position):
     for i in xrange(position, start, -1):
         c = content[i]
 
-        if not quoteStack and (c in terminators or c in quotesFwd or c == '\n'):                                                                               
+        if not quoteStack and (c in terminators or c in quotesFwd):                                                                               
             start = i + 1
             break
 
@@ -93,13 +93,15 @@ def findSentence(content, position):
             quoteStack.pop()
         elif c in quotesFwd:
             quoteStack.insert(0, quotesFwd[c])   
-    return content[start:end].strip()
+    return content[start:end].strip(), start
 
 
 def formatFields(fields, markup):
     result = dict()               
     if markup.get('line'):
       tabs = markup['line'].split('\t')
+      for x in range(10):
+        markup['t'+str(x)] = ''
       for i,tab in enumerate(tabs):
         markup['t'+str(i)] = tab 
     for field, value in fields.items():
@@ -124,184 +126,3 @@ def markupSentenceExp(definition):
         'line': definition.get('line'),
         'filename': definition.get('filename')
     }
-    
-def markupVocabExp(definition):
-    if definition.get('reading'):
-        summary = u'{expression}[{reading}]'.format(**definition)
-    else:
-        summary = u'{expression}'.format(**definition)
-
-    return {
-        'expression': definition['expression'],
-        'reading': definition.get('reading') or unicode(),
-        'hanja': definition.get('hanja') or unicode(),
-        'glossary': definition['glossary'],
-        'language': definition.get('language') or unicode(),
-        'sentence': definition.get('sentence'),
-        'traditional': definition.get('traditional') or unicode(),
-        'line': definition.get('line'),
-        'filename': definition.get('filename'),
-        'summary': summary
-    }
-
-
-def markupVocabReading(definition):
-    if definition.get('reading'):
-        return {
-            'expression': definition['reading'],
-            'reading': unicode(),
-            'hanja': unicode(),
-            'glossary': definition['glossary'],
-            'language': definition.get('language'),
-            'sentence': definition.get('sentence'),
-            'traditional': definition.get('traditional') or unicode(),
-            'line': definition.get('line'),
-            'definition': definition.get('filename'),
-            'summary': definition['reading']
-        }
-
-
-def copyVocabDef(definition):
-    if definition['reading']:
-        result = u'{expression}\t{reading}\t{glossary}\n'.format(**definition)
-    else:
-        result = u'{expression}\t{glossary}\n'.format(**definition)
-
-    QtGui.QApplication.clipboard().setText(result)
-
-
-def markupKanji(definition):
-    return {
-        'character': definition['character'],
-        'onyomi': definition['onyomi'],
-        'kunyomi': definition['kunyomi'],
-        'glossary': definition['glossary'],
-        'summary': definition['character']
-    }
-
-
-def copyKanjiDef(definition):
-    return QtGui.QApplication.clipboard().setText(u'{character}\t{kunyomi}\t{onyomi}\t{glossary}'.format(**definition))
-
-
-def buildDefHeader():
-    palette = QtGui.QApplication.palette()
-    toolTipBg = palette.color(QtGui.QPalette.Window).name()
-    toolTipFg = palette.color(QtGui.QPalette.WindowText).name()
-
-    return u"""
-        <html><head><style>
-        body {{ background-color: {0}; color: {1}; font-size: 11pt; }}
-        span.expression {{ font-size: 15pt; }}
-        </style></head><body>""".format(toolTipBg, toolTipFg)
-
-
-def buildDefFooter():
-    return '</body></html>'
-
-def buildEmpty():
-    return u"""
-        <p>No definitions to display.</p>
-        <p>Mouse over text with the <em>middle mouse button</em> or <em>shift key</em> pressed to search.</p>
-        <p>You can also also input terms in the search box below."""
-
-
-def buildVocabDef(definition, index, query, allowOverwrite):
-    reading = unicode()
-    if definition.get('reading'):
-        reading = u'<span class="reading">[{0}]<br>'.format(definition['reading'])
-        if definition.get('tags') == u'traditional':
-            reading += u' (trad.)'
-        reading += '</span>'
-
-    rules = unicode()
-    if definition.get('rules'):
-        rules = ' &lt; '.join(definition['rules'])
-        rules = '<span class="rules">({0})<br></span>'.format(rules)
-
-    links = '<a href="copyVocabDef:{0}"><img src="://img/img/icon_copy_definition.png" align="right"></a>'.format(index)
-    if query is not None:
-        markupExp = markupVocabExp(definition)
-        markupReading = markupVocabReading(definition)
-        if query('vocab', markupExp, index):
-            links += '<a href="addVocabExp:{0}"><img src="://img/img/icon_add_expression.png" align="right"></a>'.format(index)
-        else:
-            if allowOverwrite:
-                links += '<a href="overwriteVocabExp:{0}"><img src="://img/img/icon_overwrite_expression.png" align="right"></a>'.format(index)
-        if markupReading is not None:
-            if query('vocabReading', markupReading, index):
-                links += '<a href="addVocabReading:{0}"><img src="://img/img/icon_add_reading.png" align="right"></a>'.format(index)
-            elif markupExp is not None and markupReading['summary'] != markupExp['summary']:
-                if allowOverwrite:
-                    links += '<a href="overwriteVocabReading:{0}"><img src="://img/img/icon_overwrite_reading.png" align="right"></a>'.format(index)
-
-    html = u"""
-        <span class="links">{0}</span>
-        <span class="expression"><a href="jisho:{1}">{1}</a><br></span>
-        {2}
-        <span class="glossary">{3}<br></span>
-        {4}
-        <br clear="all">""".format(links, definition['expression'], reading, definition['glossary'], rules)
-
-    return html
-
-
-def buildVocabDefs(definitions, query, allowOverwrite):
-    html = buildDefHeader()
-    if len(definitions) > 0:
-        for i, definition in enumerate(definitions):
-            html += buildVocabDef(definition, i, query, allowOverwrite)
-    else:
-        html += buildEmpty()
-
-    return html + buildDefFooter()
-
-
-def buildKanjiDef(definition, index, query, allowOverwrite):
-    links = '<a href="copyKanjiDef:{0}"><img src="://img/img/icon_copy_definition.png" align="right"></a>'.format(index)
-    if query is not None and query('kanji', markupKanji(definition), index):
-        links += '<a href="addKanji:{0}"><img src="://img/img/icon_add_expression.png" align="right"></a>'.format(index)
-
-    readings = ', '.join([definition['kunyomi'], definition['onyomi']])
-    html = u"""
-        <span class="links">{0}</span>
-        <span class="expression"><a href="jisho:{1}">{1}</a><br></span>
-        <span class="reading">[{2}]<br></span>
-        <span class="glossary">{3}<br></span>
-        <br clear="all">""".format(links, definition['character'], readings, definition['glossary'])
-
-    return html
-
-
-def buildKanjiDefs(definitions, query, allowOverwrite):
-    html = buildDefHeader()
-
-    if len(definitions) > 0:
-        for i, definition in enumerate(definitions):
-            html += buildKanjiDef(definition, i, query, allowOverwrite)
-    else:
-        html += buildEmpty()
-
-    return html + buildDefFooter()
-
-
-def extractKindleDeck(filename):
-    words = list()
-
-    try:
-        with sqlite3.connect(unicode(filename)) as db:
-            for row in db.execute('select word from WORDS'):
-                words.append(row[0])
-    except sqlite3.OperationalError:
-        pass
-
-    return words
-
-
-def extractWordList(filename):
-    words = list()
-
-    with codecs.open(unicode(filename), 'rb', 'utf-8') as fp:
-        words = re.split('[;,\s]', fp.read())
-
-    return filter(None, words)

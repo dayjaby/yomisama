@@ -1,18 +1,27 @@
 import reader_util
 import time
-
+import re
 
 
 class FileState:
-    def __init__(self,fn,stripReadings,languages=[]):
+    def __init__(self,fn,stripReadings,languages=[],profiles={}):
         self.alias = dict()
         self.languages = languages
-        self.wordsAll = dict()
-        self.wordsBad = dict()
-        self.wordsMarkup = dict()
+        self.profiles = dict()
+        for k, profile in profiles.items():
+            self.profiles[profile.name] = {
+                'wordsAll': dict(),
+                'wordsBad': dict(),
+                'wordsMarkup': dict(),
+                'wordsNotFound': [],
+                'descriptor': profile.descriptor,
+                'allowedTags': profile.allowedTags,
+                'freshlyAdded': [],
+                'longestMatch': None,
+                'longestMatchKey': ''
+            }
         self.sep = u"\U00012000"
         self.lineBreak = u"\U00012001"
-        self.wordsNotFound = []
         self.dueness = 0.0
         self.wrong = 0
         self.correct = 0
@@ -23,6 +32,12 @@ class FileState:
         else:
             self.filename = unicode(fn)
             self.load()
+    
+    def count(self,name):
+        cnt = 0
+        for k,profile in self.profiles.items():
+            cnt += len(profile[name])
+        return cnt
     
     def load(self):
         with open(self.filename) as fp:
@@ -35,22 +50,20 @@ class FileState:
 
     def resetTimer(self):
         self.timerStarted = time.time()
-    
-            
-    def getPlainVocabularyList(self):
-        return  u'### VOCABULARY IN THIS TEXT ###\n'+u'\n'.join(self.wordsAll.keys())+u'\n'.join(self.wordsNotFound) 
 
-    def getExportVocabularyList(self,allowedTags):
+    def getExportVocabularyList(self,profile):
+        profile = self.profiles[profile]
         def access(x,y):
             if y not in x:
                 return u''
             else:
                 return x[y]
         #don't export filename, because it's unnecessary for importing
+        allowedTags = profile["allowedTags"][:]
         if 'filename' in allowedTags:
             allowedTags.remove('filename')
-        vocabularyDefinitions = [self.sep.join([x]+([access(self.wordsMarkup[x],y).replace(u'\n',self.lineBreak) for y in allowedTags])) for x in self.wordsAll.keys()]
-        return  u'### VOCABULARY IN THIS TEXT (EXPORT)###\n'+ self.sep.join(allowedTags) +u'\n'+ u'\n'.join(vocabularyDefinitions)+u'\n'.join(self.wordsNotFound) 
+        vocabularyDefinitions = [self.sep.join([x]+([access(profile['wordsMarkup'][x],y).replace(u'\n',self.lineBreak) for y in allowedTags])) for x in profile['wordsAll'].keys()]
+        return u'### ' + profile["descriptor"] + ' ###\n'+ self.sep.join(allowedTags) +(u'\n' if len(vocabularyDefinitions)>0 else '')+ u'\n'.join(vocabularyDefinitions)+u'\n'.join(profile['wordsNotFound']) 
     
     def getAliasList(self):
         if not self.alias.items():
@@ -58,34 +71,41 @@ class FileState:
         else:
             return u'### ALIAS ###\n' + u'\n'.join([eng + self.sep + jpn for eng,jpn in self.alias.items()]) + u'\n'
     
-    def overwriteVocabulary(self,value,card):
-        self.wordsAll[value] = card
-        if value in self.wordsBad:
-            self.wordsBad[value] = card
+    def overwriteVocabulary(self,profile,value,card):
+        profile = self.profiles[profile]
+        profile['wordsAll'][value] = card
+        if value in profile['wordsBad']:
+            profile['wordsBad'][value] = card
     
     
-    def addVocabulary(self,value,card,addToBadListToo = True):
-        self.wordsAll[value] = card
+    def addVocabulary(self,profile,value,card,addToBadListToo = True):
+        profile = self.profiles[profile]
+        profile['wordsAll'][value] = card
         if addToBadListToo:
-            self.wordsBad[value] = card             
+            profile['wordsBad'][value] = card             
     
-    def addMarkup(self,value,markup):
-        self.wordsMarkup[value] = markup
+    def addMarkup(self,profile,value,markup):
+        profile = self.profiles[profile]
+        profile['wordsMarkup'][value] = markup
         
     def findVocabulary(self,sched,allCards,needContent=True):
         lines = self.content.splitlines()
         state = "text"
+        currentProfile = None
         self.exportedVocab = False
         exportedTags = None
         self.content = u''
         self.dueness = 0.0
         self.foundvocabs = 0
-        self.wordsNotFound = []
         shuffle = False
+        regexText = False
         filteredLines = []
         for line in lines:
-            if self.exportedVocab and not exportedTags and state == "vocabulary":
+            if self.exportedVocab and not exportedTags and state == "profile":
                 exportedTags = line.split(self.sep)
+            elif line == u'### REGEXP ###':
+                state = "regex"
+                regexText = True
             elif line == u'### SHUFFLE THIS TEXT ###':
                 shuffle = True
             elif line == u'### ALIAS ###':
@@ -93,10 +113,44 @@ class FileState:
             elif line == u'### MECAB ###':
                 state = "mecab"
             elif line == u'### VOCABULARY IN THIS TEXT ###':
-                state = "vocabulary"
-            elif line == u'### VOCABULARY IN THIS TEXT (EXPORT)###':
-                state = "vocabulary"
+                state = "profile"
+                currentProfile = "vocabulary"
+            elif line == u'### SENTENCES IN THIS TEXT ###':
+                state = "profile"
+                currentProfile = "sentence"
                 self.exportedVocab = True
+                exportedTags = False
+            elif line == u'### KANJI IN THIS TEXT ###':
+                state = "profile"
+                currentProfile = "kanji"
+                self.exportedVocab = True
+                exportedTags = False
+            elif line == u'### VOCABULARY IN THIS TEXT (EXPORT)###' or line == u'### VOCABULARY IN THIS TEXT (EXPORT) ###':
+                state = "profile"
+                currentProfile = "vocabulary"
+                self.exportedVocab = True
+                exportedTags = False
+            elif state == "regex":
+                infos = line.split("###")
+                if len(infos) == 3:
+                    regex, field, alias = infos
+                    regex = re.compile(regex)
+                    for k,profile in allCards.items():
+                        for key,card in profile.items():
+                            note = card.note()
+                            if regex.match(key):
+                                if k == 'vocabulary':
+                                    if alias in note.keys():
+                                        self.alias[note[alias]] = note[field]
+                                        filteredLines.append(note[alias])
+                                    else:
+                                        filteredLines.append(note[field])
+                                import aqt
+                                aqt.mw.col.profiles = self.profiles
+                                self.profiles[k]['wordsMarkup'][key] = note.fields
+                                self.dueness += sched._smoothedIvl(card)
+                                self.profiles[k]['wordsAll'][key] = card
+                                self.foundvocabs += 1
             elif state == "mecab":
                 self.exportedVocab = True
                 definitions = line.split(self.sep)
@@ -118,15 +172,15 @@ class FileState:
                 markup['traditional'] = u""
                 markup['language'] = u"Japanese"
                 markup['filename'] = self.filename
-                self.wordsMarkup[line] = markup
+                self['wordsMarkup'][line] = markup
                 if line in allCards:
                     card = allCards[line]
                     self.dueness += sched._smoothedIvl(card)
-                    self.wordsAll[line] = card
+                    self['wordsAll'][line] = card
                     self.foundvocabs += 1
                 else:
-                    self.wordsNotFound.append(line)
-            elif state == "vocabulary":
+                    self['wordsNotFound'].append(line)
+            elif state == "profile":
                 if self.exportedVocab:
                     definitions = line.split(self.sep)
                     line = definitions.pop(0)
@@ -136,14 +190,14 @@ class FileState:
                             break
                         markup[exportedTags[i]] = field.replace(self.lineBreak,u'\n')
                     markup['filename'] = self.filename
-                    self.wordsMarkup[line] = markup
-                if line in allCards:
-                    card = allCards[line]
+                    self.profiles[currentProfile]['wordsMarkup'][line] = markup
+                if line in allCards[currentProfile]:
+                    card = allCards[currentProfile][line]
                     self.dueness += sched._smoothedIvl(card)
-                    self.wordsAll[line] = card
+                    self.profiles[currentProfile]['wordsAll'][line] = card
                     self.foundvocabs += 1
                 else:
-                    self.wordsNotFound.append(line)
+                    self.profiles[currentProfile]['wordsNotFound'].append(line)
             elif state == "alias":
                 eng,jpn = line.split(self.sep)
                 self.alias[eng] = jpn
@@ -152,18 +206,23 @@ class FileState:
         if shuffle:
             import random
             random.shuffle(filteredLines)
-            filteredLines.append(u'### SHUFFLE THIS TEXT ###')
+            if not regexText:
+                filteredLines.append(u'### SHUFFLE THIS TEXT ###')
         self.content = u'\n'.join(filteredLines) + u'\n'
         
     def onLearnVocabularyList(self,sched):
         self.correct = 0
         self.wrong = 0
         self.timeTotal = time.time() - self.timerStarted
-        self.timePerWord = self.timeTotal / len(self.wordsAll)
-        for word in self.wordsAll:
-            if word in self.wordsBad:
-                sched.earlyAnswerCard(self.wordsBad[word],1,self.timePerWord)
-                self.wrong += 1
-            else:
-                sched.earlyAnswerCard(self.wordsAll[word],3,self.timePerWord)
-                self.correct += 1
+        countWords = 0
+        for k,profile in self.profiles.items():
+            countWords += len(profile['wordsAll'])
+        self.timePerWord = self.timeTotal / countWords if countWords > 0 else 0
+        for k,profile in self.profiles.items():
+            for word in profile['wordsAll']:
+                if word in profile['wordsBad']:
+                    sched.earlyAnswerCard(profile['wordsBad'][word],1,self.timePerWord)
+                    self.wrong += 1
+                else:
+                    sched.earlyAnswerCard(profile['wordsAll'][word],3,self.timePerWord)
+                    self.correct += 1

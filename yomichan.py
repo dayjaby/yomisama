@@ -20,6 +20,7 @@
 from PyQt4 import QtGui, QtCore
 from yomi_base.reader import MainWindowReader
 from yomi_base.yomichan import Yomichan
+from yomi_base.file_state import FileState
 import sys
 
 

@@ -21,13 +21,7 @@ import copy
 import gen.preferences_ui
 import locale
 
-locale.setlocale(locale.LC_ALL, ("jpn,utf-8,eng,deu"))
-
-exportAllowedTags = {
-            'vocab': ['expression', 'kanji', 'hanja', 'reading', 'glossary', 'sentence','line','filename','summary','traditional','language'],
-            'sentence': ['line','filename', 'summary'],
-            'kanji': ['character', 'onyomi', 'kunyomi', 'glossary'],
-        }
+locale.setlocale(locale.LC_ALL, '')
         
 lookupKeys = [
             ('Insert',QtCore.Qt.Key_Insert),
@@ -37,7 +31,7 @@ lookupKeys = [
         ]
 
 class DialogPreferences(QtGui.QDialog, gen.preferences_ui.Ui_DialogPreferences):
-    def __init__(self, parent, preferences, anki):
+    def __init__(self, parent, preferences, anki, profiles):
         QtGui.QDialog.__init__(self, parent)
         self.setupUi(self)
         self.preferences = preferences
@@ -49,9 +43,7 @@ class DialogPreferences(QtGui.QDialog, gen.preferences_ui.Ui_DialogPreferences):
         self.comboBoxDeck.currentIndexChanged.connect(self.onDeckChanged)
         self.comboBoxModel.currentIndexChanged.connect(self.onModelChanged)
         self.comboFontFamily.currentFontChanged.connect(self.onFontFamilyChanged)
-        self.radioButtonKanji.toggled.connect(self.onProfileChanged)
-        self.radioButtonVocab.toggled.connect(self.onProfileChanged)
-        self.radioButtonSentence.toggled.connect(self.onProfileChanged)
+            
         self.spinFontSize.valueChanged.connect(self.onFontSizeChanged)
         self.tableFields.itemChanged.connect(self.onFieldsChanged)       
         idx = 0
@@ -59,7 +51,12 @@ class DialogPreferences(QtGui.QDialog, gen.preferences_ui.Ui_DialogPreferences):
             self.comboBoxLookupKey.insertItem(idx,name,key)
             idx = idx+1
 
+        self.profileObjs = profiles
+        for profile in profiles.values():
+            profile.onShowDialogPreferences(self)
         self.dataToDialog()
+        for profile in profiles.values():
+            profile.radioButton.toggled.connect(self.onProfileChanged)
 
 
     def dataToDialog(self):
@@ -71,6 +68,8 @@ class DialogPreferences(QtGui.QDialog, gen.preferences_ui.Ui_DialogPreferences):
         self.spinMaxResults.setValue(self.preferences['maxResults'])
         self.spinScanLength.setValue(self.preferences['scanLength'])
         self.checkUnlockVocab.setChecked(self.preferences['unlockVocab'])
+        if self.checkHideTranslation is not None:
+            self.checkHideTranslation.setChecked(self.preferences['hideTranslation'])
         self.comboBoxLookupKey.setCurrentIndex(self.preferences['lookupKey'])
         self.updateSampleText()
         font = self.textSample.font()
@@ -91,6 +90,8 @@ class DialogPreferences(QtGui.QDialog, gen.preferences_ui.Ui_DialogPreferences):
         self.preferences['maxResults'] = self.spinMaxResults.value()
         self.preferences['scanLength'] = self.spinScanLength.value()
         self.preferences['unlockVocab'] = self.checkUnlockVocab.isChecked()
+        if self.checkHideTranslation is not None:
+            self.preferences['hideTranslation'] = self.checkHideTranslation.isChecked()
         self.preferences['stripReadings'] = self.checkStripReadings.isChecked()
         self.preferences['lookupKey'] = self.comboBoxLookupKey.currentIndex()
         self.preferences['firstRun'] = False
@@ -130,7 +131,7 @@ class DialogPreferences(QtGui.QDialog, gen.preferences_ui.Ui_DialogPreferences):
         self.comboBoxModel.setCurrentIndex(self.comboBoxModel.findText(model))
         self.comboBoxModel.blockSignals(False)
 
-        allowedTags = exportAllowedTags[name]
+        allowedTags = self.profileObjs[name].allowedTags
 
         allowedTags = map(lambda t: '<strong>{' + t + '}<strong>', allowedTags)
         self.labelTags.setText('Allowed tags are {0}'.format(', '.join(allowedTags)))
@@ -240,10 +241,11 @@ class DialogPreferences(QtGui.QDialog, gen.preferences_ui.Ui_DialogPreferences):
 
 
     def activeProfile(self):
-        name = 'vocab' if self.radioButtonVocab.isChecked() else ('sentence' if self.radioButtonSentence.isChecked() else 'kanji')
-        return self.profiles.get(name), name
+        for profile in self.profileObjs.values():
+            if profile.radioButton.isChecked():
+                return self.profiles.get(profile.name), profile.name
 
-
-    def setActiveProfile(self, profile):
-        name = 'vocab' if self.radioButtonVocab.isChecked() else ('sentence' if self.radioButtonSentence.isChecked() else 'kanji')
-        self.profiles[name] = profile
+    def setActiveProfile(self, p):
+        for profile in self.profileObjs.values():
+            if profile.radioButton.isChecked():
+                self.profiles[profile.name] = p

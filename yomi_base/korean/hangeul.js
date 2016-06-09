@@ -340,6 +340,175 @@ pronunciation.get_pronunciation = function(word) {
 // that have cached API calls will know that their cache is invalid
 pronunciation.version = 1;
 
+
+var romanization = {};
+
+romanization.transliteration = {
+    '\u314F': 'ah',
+    '\u3151': 'yah',
+    '\u3153': 'uh',
+    '\u3155': 'yuh',
+    '\u3157': 'oh',
+    '\u315B': 'yoh',
+    '\u315C': 'oo',
+    '\u3160': 'yoo',
+    '\u3161': 'eu',
+    '\u3163': 'ee',
+    '\u3150': 'ae',
+    '\u3152': 'yae',
+    '\u3154': 'ae',
+    '\u3156': 'yae',
+    '\u3158': 'wah',
+    '\u3159': 'wae',
+    '\u315A': 'wae',
+    '\u315D': 'wuh',
+    '\u315E': 'weh',
+    '\u315F': 'wee',
+    '\u3162': 'ui',
+    '\u1100': ['g', 'g'],
+    '\u1102': ['n', 'n'],
+    '\u1103': ['d', 't'],
+    '\u1105': ['r', 'l'],
+    '\u1106': ['m', 'm'],
+    '\u1107': ['b', 'p'],
+    '\u1109': ['s', 's'],
+    '\u110B': ['', 'ng'],
+    '\u110C': ['ch', 't'],
+    '\u110E': ['ch','t'],
+    '\u110F': ['k', 'k'],
+    '\u1110': ['t', 't'],
+    '\u1111': ['p', 'p'],
+    '\u1112': ['h', 't'],
+    '\u1101': ['gg','gg'],
+    '\u1104': ['tt','tt'],
+    '\u1108': ['bb','bb'],
+    '\u110A': ['ss','ss'],
+    '\u110D': ['jj','jj'],
+// The pronunciation engine should remove most of these
+// these are here in the off chance that they make it through
+    '\u11AD': ['', 'n'],
+    '\u11AC': ['', 'n'],
+    '\u11AA': ['', 'g'],
+    '\u11B0': ['', 'l'],
+    '\u11B1': ['', 'l'],
+    '\u11B2': ['', 'l'],
+    '\u11B3': ['', 'l'],
+    '\u11B4': ['', 'l'],
+    '\u11B5': ['', 'l'],
+    '\u11B6': ['', 'l'],
+    '\u11B9': ['', 'p']
+};
+
+romanization.romanize_character = function(character) {
+    if (!hangeul.is_hangeul(character)) {
+        return character;
+    }
+    var lead = hangeul.lead(character);
+    var vowel = hangeul.vowel(character);
+    var padchim = hangeul.padchim(character);
+    var lead_transliteration = romanization.transliteration[lead][0];
+    var vowel_transliteration = romanization.transliteration[vowel];
+    if (padchim in romanization.transliteration) {
+        var padchim_transliteration = romanization.transliteration[padchim][1];
+    } else {
+        try {
+            var padchim_transliteration = romanization.transliteration[pronunciation.padchim_to_lead[padchim]][1];
+        } catch(e) {
+            var padchim_transliteration = '';
+        }
+    }
+    // What would a language be without irregulars?
+    if (lead in {'\u1109': true, '\u110A': true} && vowel in {'\u3151': true, '\u3163': true, '\u315B': true, '\u3160': true}) {
+        return 'sh' + vowel_transliteration + padchim_transliteration;
+    }
+    return lead_transliteration + vowel_transliteration + padchim_transliteration;
+};
+
+romanization.romanize = function(word) {
+    var pronunciation_of_word = pronunciation.get_pronunciation(word);
+    return pronunciation_of_word
+           .split('')
+           .map(romanization.romanize_character)
+           .join('-');
+};
+
+// This will be incremented when the algorithm is modified so clients
+// that have cached API calls will know that their cache is invalid
+romanization.version = 1;
+
+function display_keyboard(div) {
+    var keys = [
+        ['q', '\u3142', '\u3143'],
+        ['w', '\u3148', '\u3149'],
+        ['e', '\u3137', '\u3138'],
+        ['r', '\u3131', '\u3132'],
+        ['t', '\u3145', '\u3146'],
+        ['y', '\u315B'],
+        ['u', '\u3155'],
+        ['i', '\u3151'],
+        ['o', '\u3150', '\u3152'],
+        ['p', '\u3154', '\u3156'],
+        'break',
+        ['a', '\u3141'],
+        ['s', '\u3134'],
+        ['d', '\u3147'],
+        ['f', '\u3139'],
+        ['g', '\u314E'],
+        ['h', '\u3157'],
+        ['j', '\u3153'],
+        ['k', '\u314F'],
+        ['l', '\u3163'],
+        'break',
+        ['z', '\u314B'],
+        ['c', '\u314A'],
+        ['v', '\u314D'],
+        ['b', '\u3160'],
+        ['n', '\u315C'],
+        ['m', '\u3161'],
+        'shift',
+        ['backspace', '\u21D0']
+    ];
+    hangeul_keyboard = $(div)[0];
+    for (key in keys) {
+        if (keys[key] == 'break') {
+            $(hangeul_keyboard).append('<br/>');
+        } else if (keys[key] == 'shift') {
+            $(hangeul_keyboard).append('<button onclick="hangeul_keyboard_shift();">\u21E7</button>');
+        } else {
+            button = $('<button class="hangeul-keyboard" onclick="hangeul_keyboard_insert(\'' + keys[key][0] + '\', \'' + (keys[key][2] ? keys[key][0].toUpperCase() : '') + '\');" />').html(keys[key][1]);
+            if (keys[key][2]) {
+                hangeul_shiftables.push([button].concat(keys[key]));
+            }
+            $(hangeul_keyboard).append(button);
+        }
+    }
+}
+
+var hangeul_shiftables = [];
+var hangeul_input = '';
+var hangeul_shift = false;
+
+function hangeul_keyboard_insert(key, shift_key) {
+    if (key == 'backspace') {
+        hangeul_input = '';
+    } else {
+        if (shift_key && hangeul_shift) {
+            key = shift_key;
+        }
+        hangeul_input = strPlusJasoKey(hangeul_input, key);
+    }
+    $('#infinitive').val(hangeul_input);
+}
+
+function hangeul_keyboard_shift() {
+    hangeul_shift = !hangeul_shift;
+
+    for (shiftable in hangeul_shiftables) {
+        $(hangeul_shiftables[shiftable][0]).html(hangeul_shiftables[shiftable][hangeul_shift ? 3 : 2])
+    }
+}
+
+
 var conjugator = {};
 
 conjugator.no_padchim_rule = function(characters) {
