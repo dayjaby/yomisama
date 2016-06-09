@@ -1,1 +1,1 @@
-Search.setIndex({envversion:48,filenames:["index"],objects:{},objnames:{},objtypes:{},terms:{content:0,index:0,modul:0,page:0,search:0},titles:["Welcome to Yomisama&#8217;s documentation!"],titleterms:{document:0,indice:0,tabl:0,welcom:0,yomisama:0}})
+Search.setIndex({envversion:48,filenames:["anki","index"],objects:{},objnames:{},objtypes:{},terms:{content:[0,1],index:[0,1],modul:[0,1],page:[0,1],search:[0,1]},titles:["Indices and tables","Welcome to Yomisama&#8217;s documentation!"],titleterms:{document:1,indice:[0,1],tabl:[0,1],welcom:1,yomisama:1}})
