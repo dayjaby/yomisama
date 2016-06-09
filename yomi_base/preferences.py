@@ -19,16 +19,29 @@
 from PyQt4 import QtGui, QtCore
 import copy
 import gen.preferences_ui
+import locale
+
+locale.setlocale(locale.LC_ALL, ("jpn,utf-8,eng,deu"))
 
 exportAllowedTags = {
-            'vocab': ['expression', 'reading', 'glossary', 'sentence','line','filename','summary'],
+            'vocab': ['expression', 'kanji', 'hanja', 'reading', 'glossary', 'sentence','line','filename','summary','traditional','language'],
+            'sentence': ['line','filename', 'summary'],
             'kanji': ['character', 'onyomi', 'kunyomi', 'glossary'],
         }
+        
+lookupKeys = [
+            ('Insert',QtCore.Qt.Key_Insert),
+            ('Shift',QtCore.Qt.Key_Shift),
+            ('Pause',QtCore.Qt.Key_Pause),
+            ('F1',QtCore.Qt.Key_F1)
+        ]
 
 class DialogPreferences(QtGui.QDialog, gen.preferences_ui.Ui_DialogPreferences):
     def __init__(self, parent, preferences, anki):
         QtGui.QDialog.__init__(self, parent)
         self.setupUi(self)
+        self.preferences = preferences
+        self.anki = anki
 
         self.accepted.connect(self.onAccept)
         self.buttonColorBg.clicked.connect(self.onButtonColorBgClicked)
@@ -38,11 +51,13 @@ class DialogPreferences(QtGui.QDialog, gen.preferences_ui.Ui_DialogPreferences):
         self.comboFontFamily.currentFontChanged.connect(self.onFontFamilyChanged)
         self.radioButtonKanji.toggled.connect(self.onProfileChanged)
         self.radioButtonVocab.toggled.connect(self.onProfileChanged)
+        self.radioButtonSentence.toggled.connect(self.onProfileChanged)
         self.spinFontSize.valueChanged.connect(self.onFontSizeChanged)
         self.tableFields.itemChanged.connect(self.onFieldsChanged)       
-
-        self.preferences = preferences
-        self.anki = anki
+        idx = 0
+        for name, key in lookupKeys:
+            self.comboBoxLookupKey.insertItem(idx,name,key)
+            idx = idx+1
 
         self.dataToDialog()
 
@@ -56,7 +71,7 @@ class DialogPreferences(QtGui.QDialog, gen.preferences_ui.Ui_DialogPreferences):
         self.spinMaxResults.setValue(self.preferences['maxResults'])
         self.spinScanLength.setValue(self.preferences['scanLength'])
         self.checkUnlockVocab.setChecked(self.preferences['unlockVocab'])
-        
+        self.comboBoxLookupKey.setCurrentIndex(self.preferences['lookupKey'])
         self.updateSampleText()
         font = self.textSample.font()
         self.comboFontFamily.setCurrentFont(font)
@@ -77,6 +92,7 @@ class DialogPreferences(QtGui.QDialog, gen.preferences_ui.Ui_DialogPreferences):
         self.preferences['scanLength'] = self.spinScanLength.value()
         self.preferences['unlockVocab'] = self.checkUnlockVocab.isChecked()
         self.preferences['stripReadings'] = self.checkStripReadings.isChecked()
+        self.preferences['lookupKey'] = self.comboBoxLookupKey.currentIndex()
         self.preferences['firstRun'] = False
 
         if self.anki is not None:
@@ -100,13 +116,17 @@ class DialogPreferences(QtGui.QDialog, gen.preferences_ui.Ui_DialogPreferences):
 
         self.comboBoxDeck.blockSignals(True)
         self.comboBoxDeck.clear()
-        self.comboBoxDeck.addItems(self.anki.deckNames())
+        deckNames = self.anki.deckNames()
+        deckNames.sort(cmp=locale.strcoll)
+        self.comboBoxDeck.addItems(deckNames)
         self.comboBoxDeck.setCurrentIndex(self.comboBoxDeck.findText(deck))
         self.comboBoxDeck.blockSignals(False)
 
         self.comboBoxModel.blockSignals(True)
         self.comboBoxModel.clear()
-        self.comboBoxModel.addItems(self.anki.modelNames())
+        modelNames = self.anki.modelNames()
+        modelNames.sort(cmp=locale.strcoll)
+        self.comboBoxModel.addItems(modelNames)
         self.comboBoxModel.setCurrentIndex(self.comboBoxModel.findText(model))
         self.comboBoxModel.blockSignals(False)
 
@@ -220,10 +240,10 @@ class DialogPreferences(QtGui.QDialog, gen.preferences_ui.Ui_DialogPreferences):
 
 
     def activeProfile(self):
-        name = 'vocab' if self.radioButtonVocab.isChecked() else 'kanji'
+        name = 'vocab' if self.radioButtonVocab.isChecked() else ('sentence' if self.radioButtonSentence.isChecked() else 'kanji')
         return self.profiles.get(name), name
 
 
     def setActiveProfile(self, profile):
-        name = 'vocab' if self.radioButtonVocab.isChecked() else 'kanji'
+        name = 'vocab' if self.radioButtonVocab.isChecked() else ('sentence' if self.radioButtonSentence.isChecked() else 'kanji')
         self.profiles[name] = profile

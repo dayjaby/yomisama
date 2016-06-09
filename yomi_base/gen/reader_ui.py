@@ -2,8 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/reader.ui'
 #
-# Created: Mon Jun  8 10:10:27 2015
-#      by: PyQt4 UI code generator 4.11.3
+# Created by: PyQt4 UI code generator 4.11.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -112,9 +111,18 @@ class Ui_MainWindowReader(object):
         self.comboTags.setObjectName(_fromUtf8("comboTags"))
         self.horizontalLayout_2.addWidget(self.comboTags)
         self.verticalLayout_2.addLayout(self.horizontalLayout_2)
+        self.verticalLayout_5 = QtGui.QVBoxLayout()
+        self.verticalLayout_5.setObjectName(_fromUtf8("verticalLayout_5"))
+        self.removeVocabulary = QtGui.QPushButton(self.dockWidgetContents_2)
+        self.removeVocabulary.setObjectName(_fromUtf8("removeVocabulary"))
+        self.verticalLayout_5.addWidget(self.removeVocabulary)
         self.learnVocabulary = QtGui.QPushButton(self.dockWidgetContents_2)
         self.learnVocabulary.setObjectName(_fromUtf8("learnVocabulary"))
-        self.verticalLayout_2.addWidget(self.learnVocabulary)
+        self.verticalLayout_5.addWidget(self.learnVocabulary)
+        self.moveVocabulary = QtGui.QPushButton(self.dockWidgetContents_2)
+        self.moveVocabulary.setObjectName(_fromUtf8("moveVocabulary"))
+        self.verticalLayout_5.addWidget(self.moveVocabulary)
+        self.verticalLayout_2.addLayout(self.verticalLayout_5)
         self.dockAnki.setWidget(self.dockWidgetContents_2)
         MainWindowReader.addDockWidget(QtCore.Qt.DockWidgetArea(1), self.dockAnki)
         self.dockKanji = QtGui.QDockWidget(MainWindowReader)
@@ -223,6 +231,15 @@ class Ui_MainWindowReader(object):
         self.actionSave.setIcon(icon11)
         self.actionSave.setIconVisibleInMenu(True)
         self.actionSave.setObjectName(_fromUtf8("actionSave"))
+        self.actionToggleJapanese = QtGui.QAction(MainWindowReader)
+        self.actionToggleJapanese.setCheckable(True)
+        self.actionToggleJapanese.setObjectName(_fromUtf8("actionToggleJapanese"))
+        self.actionToggleKorean = QtGui.QAction(MainWindowReader)
+        self.actionToggleKorean.setCheckable(True)
+        self.actionToggleKorean.setObjectName(_fromUtf8("actionToggleKorean"))
+        self.actionToggleChinese = QtGui.QAction(MainWindowReader)
+        self.actionToggleChinese.setCheckable(True)
+        self.actionToggleChinese.setObjectName(_fromUtf8("actionToggleChinese"))
         self.menuImport.addAction(self.actionKindleDeck)
         self.menuImport.addAction(self.actionWordList)
         self.menuFile.addAction(self.actionOpen)
@@ -250,8 +267,11 @@ class Ui_MainWindowReader(object):
         self.menuView.addAction(self.actionToggleAnki)
         self.menuView.addAction(self.actionToggleVocab)
         self.menuView.addAction(self.actionToggleKanji)
-        self.menuView.addSeparator()
         self.menuView.addAction(self.actionToggleWrap)
+        self.menuView.addSeparator()
+        self.menuView.addAction(self.actionToggleJapanese)
+        self.menuView.addAction(self.actionToggleKorean)
+        self.menuView.addAction(self.actionToggleChinese)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuEdit.menuAction())
         self.menubar.addAction(self.menuView.menuAction())
@@ -286,7 +306,9 @@ class Ui_MainWindowReader(object):
         self.label.setText(_translate("MainWindowReader", "Expression", None))
         self.dockAnki.setWindowTitle(_translate("MainWindowReader", "Anki", None))
         self.label_3.setText(_translate("MainWindowReader", "Active tag(s)", None))
+        self.removeVocabulary.setText(_translate("MainWindowReader", "Remove Vocabulary", None))
         self.learnVocabulary.setText(_translate("MainWindowReader", "Learn Vocabulary", None))
+        self.moveVocabulary.setText(_translate("MainWindowReader", "Move Vocabulary", None))
         self.dockKanji.setWindowTitle(_translate("MainWindowReader", "Kanji", None))
         self.label_2.setText(_translate("MainWindowReader", "Character", None))
         self.actionOpen.setText(_translate("MainWindowReader", "&Open...", None))
@@ -294,12 +316,10 @@ class Ui_MainWindowReader(object):
         self.actionOpen.setShortcut(_translate("MainWindowReader", "Ctrl+O", None))
         self.actionQuit.setText(_translate("MainWindowReader", "&Quit", None))
         self.actionQuit.setToolTip(_translate("MainWindowReader", "Quit Yomichan", None))
-        self.actionQuit.setShortcut(_translate("MainWindowReader", "Esc", None))
         self.actionPreferences.setText(_translate("MainWindowReader", "&Preferences...", None))
         self.actionPreferences.setToolTip(_translate("MainWindowReader", "Edit preferences", None))
         self.actionAbout.setText(_translate("MainWindowReader", "&About...", None))
         self.actionAbout.setToolTip(_translate("MainWindowReader", "About Yomichan", None))
-        self.actionAbout.setShortcut(_translate("MainWindowReader", "F1", None))
         self.actionZoomIn.setText(_translate("MainWindowReader", "Zoom &in", None))
         self.actionZoomIn.setShortcut(_translate("MainWindowReader", "Ctrl++", None))
         self.actionZoomOut.setText(_translate("MainWindowReader", "Zoom &out", None))
@@ -327,5 +347,11 @@ class Ui_MainWindowReader(object):
         self.actionSave.setText(_translate("MainWindowReader", "&Save...", None))
         self.actionSave.setToolTip(_translate("MainWindowReader", "Save file", None))
         self.actionSave.setShortcut(_translate("MainWindowReader", "Ctrl+S", None))
+        self.actionToggleJapanese.setText(_translate("MainWindowReader", "&Japanese", None))
+        self.actionToggleJapanese.setToolTip(_translate("MainWindowReader", "Enable Japanese dictionary", None))
+        self.actionToggleKorean.setText(_translate("MainWindowReader", "&Korean", None))
+        self.actionToggleKorean.setToolTip(_translate("MainWindowReader", "Enable Korean dictionary", None))
+        self.actionToggleChinese.setText(_translate("MainWindowReader", "&Chinese", None))
+        self.actionToggleChinese.setToolTip(_translate("MainWindowReader", "Enable Chinese dictionary", None))
 
 import resources_rc

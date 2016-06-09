@@ -2,8 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/preferences.ui'
 #
-# Created: Mon Jun 15 11:28:06 2015
-#      by: PyQt4 UI code generator 4.11.3
+# Created by: PyQt4 UI code generator 4.11.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -73,6 +72,12 @@ class Ui_DialogPreferences(object):
         self.spinScanLength.setMinimum(1)
         self.spinScanLength.setObjectName(_fromUtf8("spinScanLength"))
         self.formLayout.setWidget(1, QtGui.QFormLayout.FieldRole, self.spinScanLength)
+        self.comboBoxLookupKey = QtGui.QComboBox(self.tabGeneral)
+        self.comboBoxLookupKey.setObjectName(_fromUtf8("comboBoxLookupKey"))
+        self.formLayout.setWidget(2, QtGui.QFormLayout.LabelRole, self.comboBoxLookupKey)
+        self.label_3 = QtGui.QLabel(self.tabGeneral)
+        self.label_3.setObjectName(_fromUtf8("label_3"))
+        self.formLayout.setWidget(2, QtGui.QFormLayout.FieldRole, self.label_3)
         self.verticalLayout_4.addLayout(self.formLayout)
         self.tabWidget.addTab(self.tabGeneral, _fromUtf8(""))
         self.tabAppearance = QtGui.QWidget()
@@ -131,6 +136,9 @@ class Ui_DialogPreferences(object):
         self.radioButtonKanji = QtGui.QRadioButton(self.tabAnki)
         self.radioButtonKanji.setObjectName(_fromUtf8("radioButtonKanji"))
         self.horizontalLayout_2.addWidget(self.radioButtonKanji)
+        self.radioButtonSentence = QtGui.QRadioButton(self.tabAnki)
+        self.radioButtonSentence.setObjectName(_fromUtf8("radioButtonSentence"))
+        self.horizontalLayout_2.addWidget(self.radioButtonSentence)
         spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_2.addItem(spacerItem)
         self.verticalLayout_2.addLayout(self.horizontalLayout_2)
@@ -203,6 +211,7 @@ class Ui_DialogPreferences(object):
         self.checkCheckForUpdates.setText(_translate("DialogPreferences", "Check for updates", None))
         self.label_2.setText(_translate("DialogPreferences", "Max search results", None))
         self.label_14.setText(_translate("DialogPreferences", "Text scan length", None))
+        self.label_3.setText(_translate("DialogPreferences", "Lookup key", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabGeneral), _translate("DialogPreferences", "General", None))
         self.buttonColorFg.setText(_translate("DialogPreferences", "Foreground...", None))
         self.buttonColorBg.setText(_translate("DialogPreferences", "Background...", None))
@@ -212,6 +221,7 @@ class Ui_DialogPreferences(object):
         self.label.setText(_translate("DialogPreferences", "Displayed profile", None))
         self.radioButtonVocab.setText(_translate("DialogPreferences", "Vocabulary", None))
         self.radioButtonKanji.setText(_translate("DialogPreferences", "Kanji", None))
+        self.radioButtonSentence.setText(_translate("DialogPreferences", "Sentence", None))
         self.label_13.setText(_translate("DialogPreferences", "Deck", None))
         self.label_12.setText(_translate("DialogPreferences", "Model", None))
         self.label_11.setText(_translate("DialogPreferences", "Specify how your model fields are populated when adding facts", None))

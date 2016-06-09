@@ -107,8 +107,11 @@
     <addaction name="actionToggleAnki"/>
     <addaction name="actionToggleVocab"/>
     <addaction name="actionToggleKanji"/>
-    <addaction name="separator"/>
     <addaction name="actionToggleWrap"/>
+    <addaction name="separator"/>
+    <addaction name="actionToggleJapanese"/>
+    <addaction name="actionToggleKorean"/>
+    <addaction name="actionToggleChinese"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -213,11 +216,29 @@
       </layout>
      </item>
      <item>
-      <widget class="QPushButton" name="learnVocabulary">
-       <property name="text">
-        <string>Learn Vocabulary</string>
-       </property>
-      </widget>
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <item>
+        <widget class="QPushButton" name="removeVocabulary">
+         <property name="text">
+          <string>Remove Vocabulary</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="learnVocabulary">
+         <property name="text">
+          <string>Learn Vocabulary</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="moveVocabulary">
+         <property name="text">
+          <string>Move Vocabulary</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </widget>
@@ -287,9 +308,6 @@
    <property name="toolTip">
     <string>Quit Yomichan</string>
    </property>
-   <property name="shortcut">
-    <string>Esc</string>
-   </property>
    <property name="iconVisibleInMenu">
     <bool>true</bool>
    </property>
@@ -319,9 +337,6 @@
    </property>
    <property name="toolTip">
     <string>About Yomichan</string>
-   </property>
-   <property name="shortcut">
-    <string>F1</string>
    </property>
    <property name="iconVisibleInMenu">
     <bool>true</bool>
@@ -495,6 +510,39 @@
    </property>
    <property name="iconVisibleInMenu">
     <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionToggleJapanese">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Japanese</string>
+   </property>
+   <property name="toolTip">
+    <string>Enable Japanese dictionary</string>
+   </property>
+  </action>
+  <action name="actionToggleKorean">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Korean</string>
+   </property>
+   <property name="toolTip">
+    <string>Enable Korean dictionary</string>
+   </property>
+  </action>
+  <action name="actionToggleChinese">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Chinese</string>
+   </property>
+   <property name="toolTip">
+    <string>Enable Chinese dictionary</string>
    </property>
   </action>
  </widget>
