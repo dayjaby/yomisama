@@ -101,6 +101,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
 
     def __init__(self, plugin, parent, preferences, languages, filename=None, anki=None, closed=None):
         QtGui.QMainWindow.__init__(self, parent)
+        self.debug = []
         self.setupUi(self)
         self.parent = parent
         self.textContent.mouseMoveEvent = self.onContentMouseMove
@@ -543,31 +544,24 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
     def ankiOverwriteFact(self, completeProfile, markup):
         if markup is None:
             return False
-        self.status = 1
         if self.anki is None:
             return False
-        self.status = 2
 
         profile = self.preferences['profiles'].get(completeProfile)
         if profile is None:
             return False
-        self.status = 3
-
         fields = reader_util.formatFields(profile['fields'], markup)
         tagsSplit = reader_util.splitTags(unicode(self.comboTags.currentText()))
         tagsJoined = ' '.join(tagsSplit)
-        self.status = 4
         tagIndex = self.comboTags.findText(tagsJoined)
         if tagIndex > 0:
             self.comboTags.removeItem(tagIndex)
         if tagIndex != 0:
             self.comboTags.insertItem(0, tagsJoined)
         self.preferences.updateFactTags(tagsJoined)
-        self.status = 5
         key = self.anki.getModelKey(profile['model'])                                                  
         value = fields[key]
         ids = self.anki.getNotes(profile['model'],key,value)
-        self.status = (6,ids)
         if len(ids) == 0:
             return False
         
@@ -603,17 +597,13 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
         return True
 
     def ankiAddFact(self, completeProfile, markup, addToList = True, field = 'summary'):
-        self.status = 1
         if markup is None:
             return False
-        self.status = 2
         if self.anki is None:
             return False
-        self.status = 3
         profile = self.preferences['profiles'].get(completeProfile)
         if profile is None:
             return False
-        self.status = 4
         fields = reader_util.formatFields(profile['fields'], markup)
         self.fields = (fields,profile['fields'],markup)
         tagsSplit = reader_util.splitTags(unicode(self.comboTags.currentText()))

@@ -56,7 +56,6 @@ class SentenceProfile(GenericProfile):
         
     def onLookup(self,d,lengthMatched):
         if self.dockSentence.isVisible():
-            lengthMatched = self.reader.findTerm(d.contentSampleFlat)
             sentence, sentenceStart = reader_util.findSentence(d.content, d.samplePosStart)
             line, lineStart = reader_util.findLine(d.content, d.samplePosStart)
             self.definitions = [{

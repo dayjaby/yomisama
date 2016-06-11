@@ -41,6 +41,9 @@ class VocabularyProfile(GenericProfile):
         reader.menuView.insertAction(reader.menuView.actions()[2],self.actionToggleVocab)
         QtCore.QObject.connect(self.actionToggleVocab, QtCore.SIGNAL("toggled(bool)"), self.dockVocab.setVisible)
 
+        self.dockVocab.installEventFilter(self.reader.keyFilter)
+
+        
     def onVisibilityChanged(self,visible):
         self.actionToggleVocab.setChecked(self.dockVocab.isVisible())
 

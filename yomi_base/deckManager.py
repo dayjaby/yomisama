@@ -60,7 +60,8 @@ class DeckManager(anki.decks.DeckManager):
                     os.remove(completePath)
                     if name in self.filecache:
                         del self.filecache[name]
-        anki.decks.DeckManager.rem(self,did,cardsToo,childrenToo)
+        if len(path) > 1 or path[0] != u'Yomichan':
+            anki.decks.DeckManager.rem(self,did,cardsToo,childrenToo)
                 
     def rename(self, g, name):
         path = name.split(u'::')
