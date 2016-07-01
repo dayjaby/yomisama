@@ -21,21 +21,7 @@
     <normaloff>:/img/img/icon_logo_32.png</normaloff>:/img/img/icon_logo_32.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_4">
-    <item>
-     <widget class="QPlainTextEdit" name="textContent">
-      <property name="mouseTracking">
-       <bool>true</bool>
-      </property>
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-      <property name="plainText">
-       <string>Paste text here or open a .txt file you want to read!</string>
-      </property>
-     </widget>
-    </item>
-   </layout>
+   <layout class="QVBoxLayout" name="verticalLayout_4"/>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -142,42 +128,6 @@
    <addaction name="separator"/>
    <addaction name="actionFind"/>
   </widget>
-  <widget class="QDockWidget" name="dockVocab">
-   <property name="windowTitle">
-    <string>Vocabulary</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>2</number>
-   </attribute>
-   <widget class="QWidget" name="dockWidgetContents">
-    <layout class="QVBoxLayout" name="verticalLayout">
-     <item>
-      <widget class="QTextBrowser" name="textVocabDefs">
-       <property name="acceptDrops">
-        <bool>false</bool>
-       </property>
-       <property name="openLinks">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_3">
-       <item>
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>Expression</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="textVocabSearch"/>
-       </item>
-      </layout>
-     </item>
-    </layout>
-   </widget>
-  </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QDockWidget" name="dockAnki">
    <property name="windowTitle">
@@ -243,38 +193,24 @@
     </layout>
    </widget>
   </widget>
-  <widget class="QDockWidget" name="dockKanji">
-   <property name="windowTitle">
-    <string>Kanji</string>
-   </property>
+  <widget class="QDockWidget" name="dockWidget">
    <attribute name="dockWidgetArea">
-    <number>2</number>
+    <number>1</number>
    </attribute>
-   <widget class="QWidget" name="dockWidgetContents_3">
-    <layout class="QVBoxLayout" name="verticalLayout_3">
+   <widget class="QWidget" name="dockWidgetContents">
+    <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="QTextBrowser" name="textKanjiDefs">
-       <property name="acceptDrops">
-        <bool>false</bool>
+      <widget class="QPlainTextEdit" name="textContent">
+       <property name="mouseTracking">
+        <bool>true</bool>
        </property>
-       <property name="openLinks">
-        <bool>false</bool>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+       <property name="plainText">
+        <string>Paste text here or open a .txt file you want to read!</string>
        </property>
       </widget>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_4">
-       <item>
-        <widget class="QLabel" name="label_2">
-         <property name="text">
-          <string>Character</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="textKanjiSearch"/>
-       </item>
-      </layout>
      </item>
     </layout>
    </widget>
@@ -551,22 +487,6 @@
  </resources>
  <connections>
   <connection>
-   <sender>actionToggleVocab</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>dockVocab</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>634</x>
-     <y>313</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>actionQuit</sender>
    <signal>triggered()</signal>
    <receiver>MainWindowReader</receiver>
@@ -595,22 +515,6 @@
     <hint type="destinationlabel">
      <x>136</x>
      <y>342</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>actionToggleKanji</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>dockKanji</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>762</x>
-     <y>479</y>
     </hint>
    </hints>
   </connection>

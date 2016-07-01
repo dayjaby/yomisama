@@ -124,15 +124,18 @@ class Anki:
 
 
     def createNote(self, deckName, modelName, fields, tags=list()):
+        self.noteCreate = "self.models().byName('{0}')".format(modelName)
         model = self.models().byName(modelName)
         if model is None:
             return None
 
+        self.noteCreate = "self.decks().byName('{0}')".format(deckName)
         deck = self.decks().byName(deckName)
         if deck is None:
             return None
-
+        self.noteCreate = "before create note"
         note = anki.notes.Note(self.collection(), model)
+        self.noteCreate = "after create note"
         note.model()['did'] = deck['id']
         note.tags = tags
 
@@ -151,7 +154,8 @@ class Anki:
         
     
     def getNotes(self, modelName, key, value):
-        return self.collection().findNotes(key + u':' + value + u' note:' + modelName)
+        self.query = key + u':"' + value + u'" note:"' + modelName + u'"'
+        return self.collection().findNotes(self.query)
         
         
     def getCards(self, modelName, onlyFirst = False):
@@ -284,7 +288,6 @@ class YomichanPlugin(Yomichan):
                 self.parent,
                 self.preferences,
                 self.languages,
-                None,
                 self.anki,
                 self.onWindowClose
             )
@@ -321,18 +324,18 @@ class YomichanPlugin(Yomichan):
             mediadir = self.anki.collection().media.dir()
             yomimedia = os.path.join(mediadir,rootDir)
             def processFile(file,relDir):
-                if file[-4:] == '.txt':
-                    path = os.path.join(relDir,file)
-                    fullPath = u'::'.join(unicode(path).split(os.sep))
-                    if fullPath in oldCache:
-                        fileState = oldCache[fullPath]
-                        fileState.load()
-                    else:
-                        fileState = FileState(os.path.join(mediadir,path),self.preferences['stripReadings'],profiles=self.profiles)
-                    self.fileCache[fullPath] = fileState
-                    # create deck if necessary
-                    self.anki.collection().decks.id(fullPath,create=True)
-                    fileState.findVocabulary(self.anki.collection().sched,allCards,needContent=False)
+              if file[-4:] == '.txt':
+                  path = os.path.join(relDir,file)
+                  fullPath = u'::'.join(unicode(path).split(os.sep))
+                  if fullPath in oldCache:
+                      fileState = oldCache[fullPath]
+                      fileState.load()
+                  else:
+                      fileState = FileState(os.path.join(mediadir,path),self.preferences['stripReadings'],profiles=self.profiles)
+                  self.fileCache[fullPath] = fileState
+                  # create deck if necessary
+                  self.anki.collection().decks.id(fullPath,create=True)
+                  fileState.findVocabulary(self.anki.collection().sched,allCards,needContent=False)
             if os.path.isdir(yomimedia):
                 for root,dirs,files in os.walk(yomimedia):
                     relDir = os.path.relpath(root,mediadir)
@@ -342,7 +345,7 @@ class YomichanPlugin(Yomichan):
                         path = os.path.join(relDir,dir)
                         self.fileCache[u'::'.join(unicode(path).split(os.sep))] = None
             elif os.path.isfile(yomimedia):
-                processFile(os.path.basename(yomimedia),os.path.dirname(yomimedia))
+                processFile(os.path.basename(yomimedia),os.path.dirname(rootDir))
             
 
 
@@ -396,14 +399,20 @@ def onBeforeStateChange(state, oldState, *args):
                 fileName = os.path.basename(os.path.splitext(completePath)[0])
                 try:
                     for file in os.listdir(dirName):
-                        if not file.endswith(".txt") and fileName == os.path.basename(os.path.splitext(file)[0]):
-                            openFile = os.path.join(dirName,file)
-                            if sys.platform == 'linux2':
-                                subprocess.call(["xdg*-open", openFile])
-                            else:
-                                os.startfile(openFile)
+                        if fileName == os.path.basename(os.path.splitext(file)[0]):
+                            extension = file[file.rfind("."):]
+                            yomichanInstance.window.currentFile.loadedExtensions.append(extension)
+                            if extension not in [".txt",".srt",".mkv"]:
+                                openFile = os.path.join(dirName,file)
+                                if sys.platform == 'linux2':
+                                    subprocess.call(["xdg*-open", openFile])
+                                else:
+                                    os.startfile(openFile)
                 except:
                     pass
+                          
+                for profile in yomichanInstance.window.profiles.values():
+                    profile.afterFileLoaded()
                 yomichanInstance.window.showMaximized()
     elif state == 'deckBrowser':
         if not getattr(aqt.mw.col.sched,"earlyAnswerCard",None):

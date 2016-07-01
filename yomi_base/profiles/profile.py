@@ -94,3 +94,9 @@ class GenericProfile:
 
         self.html = self.html + self.buildDefFooter()
         return self.html
+        
+    def afterFileLoaded(self):
+        pass
+        
+    def close(self):
+        pass

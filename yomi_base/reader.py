@@ -99,7 +99,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
             self.searchText = unicode()
 
 
-    def __init__(self, plugin, parent, preferences, languages, filename=None, anki=None, closed=None):
+    def __init__(self, plugin, parent, preferences, languages, anki=None, closed=None):
         QtGui.QMainWindow.__init__(self, parent)
         self.debug = []
         self.setupUi(self)
@@ -159,16 +159,10 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
         self.profiles = profiles.getAllProfiles(self)
         for profile in self.profiles.values():
             profile.updateDefinitions()
-        if filename is not None:
-            self.openFile(filename)
-        elif self.preferences['rememberTextContent']:
+        if self.preferences['rememberTextContent']:
             self.textContent.setPlainText(self.preferences['textContent'])
-        elif self.preferences['loadRecentFile']:
-            filenames = self.preferences.recentFiles()
-            if len(filenames) > 0 and os.path.isfile(filenames[0]):
-                self.openFile(filenames[0])
         elif self.anki is not None:
-            self.currentFile = FileState(filename, self.preferences['stripReadings'],self.languages,self.profiles)
+            self.currentFile = FileState(None, self.preferences['stripReadings'],self.languages,self.profiles)
 
         self.applyPreferences()
 
@@ -248,8 +242,8 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
 
 
     def closeEvent(self, event):
-        self.closeFile()
         self.preferences['windowState'] = str(self.saveState().toBase64())
+        self.closeFile()
         self.preferences.save()
 
         if self.anki is not None:
@@ -258,6 +252,8 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
         if self.closed is not None:
             self.closed()
             
+        for key,profile in self.profiles.items():
+            profile.close()
 
             
 
@@ -483,7 +479,6 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
             cursor.setPosition(self.state.scanPosition)
             self.textContent.setTextCursor(cursor)
             self.textContent.centerCursor()
-                          
 
         self.setWindowTitle(u'Yomichan - {0} ({1})'.format(os.path.basename(filename), self.currentFile.encoding))
         self.setStatus(u'Loaded file {0}'.format(filename))
@@ -493,11 +488,12 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
             filename = unicode(filename)
             with open(filename,'w') as fp:
                 content = self.textContent.toPlainText()
-                if content[-1] != u'\n':
+                if len(content)>0 and content[-1] != u'\n':
                     content += u'\n'
                 content+= self.currentFile.getAliasList()
                 content+= self.currentFile.getExportVocabularyList('vocabulary') + u'\n'
                 content+= self.currentFile.getExportVocabularyList('sentence') + u'\n'
+                content+= self.currentFile.getExportVocabularyList('movie') + u'\n'
                 content+= self.currentFile.getExportVocabularyList('kanji')
                 fp.write(content.encode('utf-8'))
                 fp.close()
@@ -543,12 +539,14 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
 
     def ankiOverwriteFact(self, completeProfile, markup):
         if markup is None:
+            self.overwrite = "markup is None"
             return False
         if self.anki is None:
             return False
 
         profile = self.preferences['profiles'].get(completeProfile)
         if profile is None:
+            self.overwrite = "profile is None"
             return False
         fields = reader_util.formatFields(profile['fields'], markup)
         tagsSplit = reader_util.splitTags(unicode(self.comboTags.currentText()))
@@ -563,11 +561,16 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
         value = fields[key]
         ids = self.anki.getNotes(profile['model'],key,value)
         if len(ids) == 0:
+            self.overwrite = "len(ids)==0"
             return False
         
         # Overwrite the fields in the note
         # or add a line, if a + is at the end of field name
         note = self.anki.collection().getNote(ids[0])   
+        self.overwrite = {
+            "note": note,
+            "fields": fields
+        }
         for name, v in fields.items():
             if name in note:
                 if unicode(name[-1]) == u'+':
@@ -598,11 +601,14 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
 
     def ankiAddFact(self, completeProfile, markup, addToList = True, field = 'summary'):
         if markup is None:
+            self.add = "markup is None"
             return False
         if self.anki is None:
+            self.add = "anki is None"
             return False
         profile = self.preferences['profiles'].get(completeProfile)
         if profile is None:
+            self.add = "profile is None"
             return False
         fields = reader_util.formatFields(profile['fields'], markup)
         self.fields = (fields,profile['fields'],markup)
@@ -616,8 +622,9 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
             self.comboTags.insertItem(0, tagsJoined)
         self.preferences.updateFactTags(tagsJoined)
 
-        factId = self.anki.addNote(profile['deck'], profile['model'], fields, tagsSplit)
-        if factId is None:
+        self.factId = self.anki.addNote(profile['deck'], profile['model'], fields, tagsSplit)
+        if self.factId is None:
+            self.add = "factId is None"
             return False
             
         key = self.anki.getModelKey(profile['model'])
@@ -625,6 +632,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
         # Put the vocabulary out of 'new' state and add it to the vocabulary list
         ids = self.anki.getCardsByNote(profile['model'],key,value)
         if len(ids) == 0:
+            self.add = "len(ids == 0)"
             return False
         card = self.anki.collection().getCard(ids[0])
         self.currentFile.profiles[completeProfile]['freshlyAdded'].append(value)
@@ -645,7 +653,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
         return True
 
 
-    def ankiIsFactValid(self, prfl, markup, index):
+    def ankiIsFactValid(self, prfl, markup, index=None):
         if markup is None:
             return False
 
@@ -655,7 +663,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
         profile = self.preferences['profiles'].get(prfl)
         if profile is None:
             return False
-
+        self.factValid = "profile is not None"
         fields = reader_util.formatFields(profile['fields'], markup)
         key = self.anki.getModelKey(profile['model'])
         if self.currentFile.profiles[prfl]['longestMatch'] is None:
@@ -664,10 +672,11 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
             if len(fields[key]) > len(self.currentFile.profiles[prfl]['longestMatchKey']):
                 self.currentFile.profiles[prfl]['longestMatch'] = index
                 self.currentFile.profiles[prfl]['longestMatchKey'] = fields[key]
-
+        self.factValid = "canAddNote?"
         result = self.anki.canAddNote(profile['deck'], profile['model'], fields)
+        self.factValid = result
         
-        if 0 <= index < 10:
+        if 0 <= index < 10 and prfl=="vocabulary":
             if markup.get('reading'):
                 self.overwritable[index] = not result
             else:
@@ -801,11 +810,11 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
         longestMatchKey = self.currentFile.profiles[prfl]['longestMatchKey']
         if self.currentFile is not None:
             # User had to look up the word, put it into the wrong list
-            if longestMatch in self.currentFile.profiles[prfl]['wordsAll']:
+            if longestMatchKey in self.currentFile.profiles[prfl]['wordsAll']:
                 if longestMatchKey in self.currentFile.profiles[prfl]['freshlyAdded']:
-                    self.currentFile.profiles[prfl]['freshlyAdded'].remove(longestMatch)
+                    self.currentFile.profiles[prfl]['freshlyAdded'].remove(longestMatchKey)
                 else:
-                    self.recentIncorrect = (prfl,longestMatchkey)
+                    self.recentIncorrect = (prfl,longestMatchKey)
                     self.currentFile.profiles[prfl]['wordsBad'][longestMatchKey] = self.currentFile.profiles[prfl]['wordsAll'][longestMatchKey]
                     self.setStatus(u'{0} has been put into the incorrectly answered set'.format(longestMatchKey))
                     
@@ -813,7 +822,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
         if self.recentIncorrect:
             prfl, word = self.recentIncorrect
             if word in self.currentFile.profiles[prfl]['wordsBad']:
-                del self.currentFile.profiles[prfl]['wordsBad'][self.recentIncorrect]
+                del self.currentFile.profiles[prfl]['wordsBad'][word]
                 self.setStatus(u'{0} was taken out of the wrongly answered vocabulary list.'.format(word))
                 self.recentIncorrect = None
             

@@ -1,5 +1,6 @@
 import reader_util
 import time
+import os
 import re
 
 
@@ -8,6 +9,7 @@ class FileState:
         self.alias = dict()
         self.languages = languages
         self.profiles = dict()
+        self.loadedExtensions = []
         for k, profile in profiles.items():
             self.profiles[profile.name] = {
                 'wordsAll': dict(),
@@ -29,8 +31,12 @@ class FileState:
         self.stripReadings = stripReadings
         if fn is None:
             self.filename = u''
+            self.basename = u''
+            self.name = u''
         else:
             self.filename = unicode(fn)
+            self.name = os.path.splitext(self.filename)[0]
+            self.basename = os.path.basename(self.name)
             self.load()
     
     def count(self,name):
@@ -62,7 +68,7 @@ class FileState:
         allowedTags = profile["allowedTags"][:]
         if 'filename' in allowedTags:
             allowedTags.remove('filename')
-        vocabularyDefinitions = [self.sep.join([x]+([access(profile['wordsMarkup'][x],y).replace(u'\n',self.lineBreak) for y in allowedTags])) for x in profile['wordsAll'].keys()]
+        vocabularyDefinitions = [self.sep.join([x.replace(u'\n',self.lineBreak).replace(u"\r","")]+([access(profile['wordsMarkup'][x],y).replace(u'\n',self.lineBreak).replace(u"\r","") for y in allowedTags])) for x in profile['wordsAll'].keys()]
         return u'### ' + profile["descriptor"] + ' ###\n'+ self.sep.join(allowedTags) +(u'\n' if len(vocabularyDefinitions)>0 else '')+ u'\n'.join(vocabularyDefinitions)+u'\n'.join(profile['wordsNotFound']) 
     
     def getAliasList(self):
@@ -123,6 +129,11 @@ class FileState:
             elif line == u'### KANJI IN THIS TEXT ###':
                 state = "profile"
                 currentProfile = "kanji"
+                self.exportedVocab = True
+                exportedTags = False
+            elif line == u'### MOVIE SNIPPETS ###':
+                state = "profile"
+                currentProfile = "movie"
                 self.exportedVocab = True
                 exportedTags = False
             elif line == u'### VOCABULARY IN THIS TEXT (EXPORT)###' or line == u'### VOCABULARY IN THIS TEXT (EXPORT) ###':

@@ -93,7 +93,7 @@ class KanjiProfile(GenericProfile):
 
     def buildDefBody(self, definition, index, query, allowOverwrite):
         links = '<a href="kanji_copy:{0}"><img src="qrc:///img/img/icon_copy_definition.png" align="right"></a>'.format(index)
-        if (query is not None and query('kanji', self.markup(definition), index)):
+        if (query is not None and query('kanji', definition, index)):
             links += '<a href="kanji_add:{0}"><img src="qrc:///img/img/icon_add_expression.png" align="right"></a>'.format(index)
 
         readings = ', '.join([definition['kunyomi'], definition['onyomi']])
