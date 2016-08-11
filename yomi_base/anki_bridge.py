@@ -29,6 +29,7 @@ from yomi_base.reader import MainWindowReader
 from yomi_base.file_state import FileState
 from yomi_base.scheduler import Scheduler
 from yomi_base.deckManager import DeckManager
+from yomi_base.errorHandler import ErrorHandler
 from yomi_base import profiles
 from anki.models import defaultModel,defaultField,defaultTemplate
 from anki.utils import ids2str, intTime
@@ -70,14 +71,24 @@ class Anki:
  background-color: white;
 }
 
-.card1 { background-color: #ffff7f; }
-.card2 { background-color: #efff7f; }
+.card1 { background-color: #dfffff; }
+.card2 { background-color: #ffafaf; }
             """
-            for field in [u'Kanji',u'Onyomi',u'Kunyomi',u'Glossary']:
+            for field in [u'Kanji',u'Onyomi',u'Kunyomi',u'Glossary',u'Words']:
                 models.addField(model,models.newField(field))
             template = models.newTemplate(u'Recognition')
             template['qfmt'] = u'{{Kanji}}'
-            template['afmt'] = u'{{FrontSide}}<hr>{{Glossary}}'
+            template['afmt'] = u'{{FrontSide}}<hr>{{Glossary}}<br>{{Onyomi}} {{Kunyomi}}'
+            models.addTemplate(model,template)
+            template = models.newTemplate(u'Production')
+            template['qfmt'] = u"""<span id="glossary">{{Glossary}}</span><br>{{Onyomi}} {{Kunyomi}}<br><br>
+<span id="words">{{furigana:Words}}</span>
+<script>
+kanji = "{{Kanji}}";
+document.getElementById("words").innerHTML = document.getElementById("words").innerHTML.split(kanji).join("~");
+</script>
+"""
+            template['afmt'] = u'{{FrontSide}}<hr>{{Kanji}}'
             models.addTemplate(model,template)
             models.add(model)
             models.flush()
@@ -319,8 +330,8 @@ class YomichanPlugin(Yomichan):
         
         oldCache = self.fileCache
         self.fileCache = dict()
-        allCards = self.fetchAllCards()
-        if allCards is not None:
+        self.allCards = self.fetchAllCards()
+        if self.allCards is not None:
             mediadir = self.anki.collection().media.dir()
             yomimedia = os.path.join(mediadir,rootDir)
             def processFile(file,relDir):
@@ -335,7 +346,7 @@ class YomichanPlugin(Yomichan):
                   self.fileCache[fullPath] = fileState
                   # create deck if necessary
                   self.anki.collection().decks.id(fullPath,create=True)
-                  fileState.findVocabulary(self.anki.collection().sched,allCards,needContent=False)
+                  fileState.findVocabulary(self.anki.collection().sched,self.allCards,needContent=False)
             if os.path.isdir(yomimedia):
                 for root,dirs,files in os.walk(yomimedia):
                     relDir = os.path.relpath(root,mediadir)
@@ -368,6 +379,8 @@ def onBeforeStateChange(state, oldState, *args):
     yomichanInstance.anki.createYomichanModel()
     if not getattr(aqt.mw.col.decks,"customDeckManager",None):
         aqt.mw.col.decks = DeckManager(aqt.mw.col,yomichanInstance.getFileCache())
+    if not getattr(aqt.mw.errorHandler,"customErrorHandler",None):
+        aqt.mw.errorHandler = ErrorHandler(aqt.mw)
     if state == 'overview':
         did = aqt.mw.col.decks.selected()
         name = aqt.mw.col.decks.nameOrNone(did)
@@ -400,13 +413,16 @@ def onBeforeStateChange(state, oldState, *args):
                 try:
                     for file in os.listdir(dirName):
                         if fileName == os.path.basename(os.path.splitext(file)[0]):
+                            aqt.mw.isfile = os.path.join(dirName,file)
+                        if fileName == os.path.basename(os.path.splitext(file)[0]) and os.path.isfile(os.path.join(dirName,file)):
                             extension = file[file.rfind("."):]
                             yomichanInstance.window.currentFile.loadedExtensions.append(extension)
-                            if extension not in [".txt",".srt",".mkv"]:
+                            if extension not in [".txt",".srt",".mkv",".mp4"]:
                                 openFile = os.path.join(dirName,file)
                                 if sys.platform == 'linux2':
                                     subprocess.call(["xdg*-open", openFile])
                                 else:
+                                    aqt.mw.file = openFile
                                     os.startfile(openFile)
                 except:
                     pass

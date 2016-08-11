@@ -66,15 +66,9 @@ class MyKeyFilter(QtCore.QObject):
                     return False
             else:
                 if event.modifiers() & QtCore.Qt.ControlModifier:
-                    if obj.overwritable[index]:
-                        obj.executeDefCommand('vocabulary_overwrite', index)
-                    else:
-                        obj.executeDefCommand('vocabulary_add', index)
+                    obj.executeDefCommand('vocabulary_add', index)
                 elif event.modifiers() & QtCore.Qt.AltModifier:
-                    if obj.overwritableReading[index]:
-                        obj.executeDefCommand('vocabulary_overwrite_reading', index)
-                    else:
-                        obj.executeDefCommand('vocabulary_add_reading', index)
+                    obj.executeDefCommand('vocabulary_add_reading', index)
                 else:
                     return False
         elif event.key() == ord('[') and obj.state.scanPosition > 0:
@@ -113,8 +107,6 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
         self.anki = anki
         self.facts = list()
         self.recentIncorrect = None
-        self.overwritable = [False] * 10
-        self.overwritableReading = [False] * 10
         self.listDefinitions.clear()
         self.closed = closed
         self.languages = languages
@@ -599,7 +591,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
             profile.updateDefinitions(scroll=True)
         return True
 
-    def ankiAddFact(self, completeProfile, markup, addToList = True, field = 'summary'):
+    def ankiAddFact(self, completeProfile, markup, addToList = True):
         if markup is None:
             self.add = "markup is None"
             return False
@@ -611,6 +603,8 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
             self.add = "profile is None"
             return False
         fields = reader_util.formatFields(profile['fields'], markup)
+        if not self.anki.canAddNote(profile['deck'], profile['model'], fields):
+            return self.ankiOverwriteFact(completeProfile, markup)
         self.fields = (fields,profile['fields'],markup)
         tagsSplit = reader_util.splitTags(unicode(self.comboTags.currentText()))
         tagsJoined = ' '.join(tagsSplit)
@@ -646,7 +640,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
             self.facts.append({'word':value,'profile':completeProfile})
             self.listDefinitions.addItem(value)
             self.listDefinitions.setCurrentRow(self.listDefinitions.count() - 1)
-        self.setStatus(u'Added fact {0}; {1} new fact(s) total'.format(markup[field], len(self.facts)))
+        self.setStatus(u'Added fact {0}; {1} new fact(s) total'.format(value, len(self.facts)))
 
         for profile in self.profiles.values():
             profile.updateDefinitions(scroll=True)
@@ -663,7 +657,6 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
         profile = self.preferences['profiles'].get(prfl)
         if profile is None:
             return False
-        self.factValid = "profile is not None"
         fields = reader_util.formatFields(profile['fields'], markup)
         key = self.anki.getModelKey(profile['model'])
         if self.currentFile.profiles[prfl]['longestMatch'] is None:
@@ -672,15 +665,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
             if len(fields[key]) > len(self.currentFile.profiles[prfl]['longestMatchKey']):
                 self.currentFile.profiles[prfl]['longestMatch'] = index
                 self.currentFile.profiles[prfl]['longestMatchKey'] = fields[key]
-        self.factValid = "canAddNote?"
         result = self.anki.canAddNote(profile['deck'], profile['model'], fields)
-        self.factValid = result
-        
-        if 0 <= index < 10 and prfl=="vocabulary":
-            if markup.get('reading'):
-                self.overwritable[index] = not result
-            else:
-                self.overwritableReading[index] = not result
                 
         return result
 
@@ -731,6 +716,8 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
             self.preferences['subscriptions'].append({'source':source,'target':target})
             self.plugin.loadSubscriptions()
 
+    def getSample(self):
+        return unicode(self.textContent.toPlainText())[self.samplePosStart:self.samplePosEnd]
             
     def updateSampleFromPosition(self):
         self.samplePosEnd = self.state.scanPosition + self.preferences['scanLength']

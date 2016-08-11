@@ -1,6 +1,10 @@
 from aqt.webview import AnkiWebView
 from PyQt4 import QtGui
 from profile import *
+import os
+
+class Container:
+    pass
 
 class KanjiProfile(GenericProfile):
     name = "kanji"
@@ -8,7 +12,7 @@ class KanjiProfile(GenericProfile):
     displayedName = "Kanji"
     languages = ["japanese"]
     sortIndex = 2
-    allowedTags = ['character', 'onyomi', 'kunyomi', 'glossary']
+    allowedTags = ['character', 'onyomi', 'kunyomi', 'glossary','ongroup','words']
 
     def __init__(self,reader):
         GenericProfile.__init__(self,reader)
@@ -50,13 +54,14 @@ class KanjiProfile(GenericProfile):
     def onAnchorClicked(self, url):
         command, index = url.split(':')
         if command == "jisho":
-            url = QtCore.QUrl(self.reader.preferences["linkToKanji"].format(index))
-            QtGui.QDesktopServices().openUrl(url)
+            self.reader.profiles["vocabulary"].onQuery([index])
+            #url = QtCore.QUrl(self.reader.preferences["linkToKanji"].format(index))
+            #QtGui.QDesktopServices().openUrl(url)
         else:
             index = int(index)
             commands = command.split("_")
             profile = commands.pop(0)
-            self.runCommand(commands,index)
+            self.runCommand(commands,self.definitions[index])
         
     def onLookup(self,d,lengthMatched):
         if self.dockKanji.isVisible():
@@ -80,15 +85,33 @@ class KanjiProfile(GenericProfile):
             QtGui.QApplication.clipboard().setText(u'{character}\t{kunyomi}\t{onyomi}\t{glossary}'.format(**definition))
         elif cmd[0] =="add":
             self.addFact(definition)
+        elif cmd[0] == "addgroup":
+            kanjigroups = os.path.join(self.reader.anki.collection().media.dir(),"Yomichan","KanjiGroups")
+            if os.path.exists(kanjigroups):
+                filename = os.path.join(kanjigroups,definition['ongroup']+".txt")
+                with open(filename,'w') as fp:
+                    content = u"""### REGEXP ###
+.*[{0}]###v###
+### SHUFFLE THIS TEXT ###""".format(definition['ongroup'])
+                    fp.write(content.encode('utf-8'))
+                    fp.close()
+            d = Container()
+            d.contentSample = definition['ongroup']
+            self.onLookup(d,len(d.contentSample))
+            self.reader.profiles["vocabulary"].onQuery(list(definition['ongroup']))
         
     
     def markup(self, definition):
+        allCards = self.reader.plugin.fetchAllCards()
+        words = u",".join([x for x in allCards["vocabulary"].keys() if definition['character'] in x])
         return {
         'character': definition['character'],
         'onyomi': definition['onyomi'],
         'kunyomi': definition['kunyomi'],
         'glossary': definition['glossary'],
-        'summary': definition['character']
+        'summary': definition['character'],
+        'ongroup': definition['ongroup'],
+        'words': words
     }
 
     def buildDefBody(self, definition, index, query, allowOverwrite):
@@ -97,11 +120,16 @@ class KanjiProfile(GenericProfile):
             links += '<a href="kanji_add:{0}"><img src="qrc:///img/img/icon_add_expression.png" align="right"></a>'.format(index)
 
         readings = ', '.join([definition['kunyomi'], definition['onyomi']])
+        if definition['ongroup'] is not None:
+            ongroup = u"""<a style="text-decoration:none;" href="kanji_addgroup:{0}">{1}</a>""".format(index,definition['ongroup'])
+        else:
+            ongroup = ''
         html = u"""
             <span class="links">{0}</span>
             <span class="expression"><a href="jisho:{1}">{1}</a><br></span>
             <span class="reading">[{2}]<br></span>
             <span class="glossary">{3}<br></span>
-            <br clear="all">""".format(links, definition['character'], readings, definition['glossary'])
+            <span class="ongroup">{4}<br></span>
+            <br clear="all">""".format(links, definition['character'], readings, definition['glossary'],ongroup)
 
         return html

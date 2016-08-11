@@ -71,6 +71,16 @@ class VocabularyProfile(GenericProfile):
             self.reader.updateVocabDefs('vocabulary')
         return lengthMatched
         
+    def onQuery(self,query):
+        if self.dockVocab.isVisible():
+            lengthMatched = self.reader.findTerm(query,wildcards=True)
+            for definition in self.definitions:
+                definition['sentence'] = ""
+                definition['line'] = ""
+                definition['filename'] = self.reader.state.filename
+            self.reader.updateVocabDefs('vocabulary')
+        return lengthMatched        
+        
     def onShowDialogPreferences(self,dialog):
         dialog.checkHideTranslation = QtGui.QCheckBox(dialog.tabAnki)
         dialog.checkHideTranslation.setObjectName(fromUtf8("checkHideTranslation"))
@@ -119,6 +129,7 @@ class VocabularyProfile(GenericProfile):
                 self.updateDefinitions()
         else:
             if len(cmds)>1 and cmds[1] == "reading":
+                definition = definition.copy()
                 definition['summary'] = definition['reading']
                 definition['expression'] = definition['reading']
                 definition['reading'] = unicode()

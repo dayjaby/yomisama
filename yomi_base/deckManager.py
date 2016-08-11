@@ -1,6 +1,8 @@
 import aqt
 import anki.decks
+from anki.consts import *
 import os,shutil
+import copy
 import yomi_base.anki_bridge
 
 class DeckManager(anki.decks.DeckManager):
@@ -65,7 +67,7 @@ class DeckManager(anki.decks.DeckManager):
                 
     def rename(self, g, name):
         path = name.split(u'::')
-        gname = g['name']
+        gname = g['name'] # old name
         path2 = gname.split(u'::')
         isYomichan = len(path) > 1 and path[0] == u'Yomichan'
         isYomichan2 = len(path2) > 1 and path2[0] == u'Yomichan'
@@ -73,8 +75,31 @@ class DeckManager(anki.decks.DeckManager):
         isFile2 = gname.endswith('.txt')
         if isYomichan == isYomichan2 and isFile==isFile2:
             anki.decks.DeckManager.rename(self,g,name)
+        elif isYomichan2 and not isYomichan:
+            # when "renaming" a Yomichan deck to a non-Yomichan deck, 
+            # create a filtered deck for the Yomichan deck
+            dynParent = None
+            if '::' in name:
+                newParent = '::'.join(name.split('::')[:-1])
+                newParentDeck = self.byName(newParent)
+                if newParentDeck['dyn']:
+                    dynParent = newParentDeck
+            searchQuery = 'deck:\"%s\" (is:due or is:new)' % gname
+            if dynParent:
+                dynParent['terms'][0][0] = "({0}) or ({1})".format(dynParent['terms'][0][0],searchQuery)
+                self.save(dynParent)
+            else:
+                dyn = copy.deepcopy(anki.decks.defaultDynamicDeck)
+                dyn['terms'][0] = [searchQuery, DYN_MAX_SIZE, DYN_RANDOM]
+                did = self.id(name,type=dyn)
+                self.debug = self.get(did)
+                aqt.mw.col.sched.rebuildDyn(did)
         else:
-            pass # don't allow renaming of Yomichan deck to non-Yomichan deck and vice-versa
+            # don't allow renaming of non-Yomichan deck to Yomichan deck
+            if '::' in name:
+                newParent = '::'.join(name.split('::')[:-1])
+                if self.byName(newParent)['dyn']:
+                    raise DeckRenameError(_("A filtered deck cannot have subdecks."))            
         if isYomichan and isYomichan2 and (isFile==isFile2):
             root_dst_dir = self.createDeck(path)
             root_src_dir = self.col.media.dir()

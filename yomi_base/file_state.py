@@ -60,7 +60,7 @@ class FileState:
     def getExportVocabularyList(self,profile):
         profile = self.profiles[profile]
         def access(x,y):
-            if y not in x:
+            if y not in x or x[y] is None:
                 return u''
             else:
                 return x[y]
@@ -112,6 +112,7 @@ class FileState:
             elif line == u'### REGEXP ###':
                 state = "regex"
                 regexText = True
+                currentProfile = "vocabulary"
             elif line == u'### SHUFFLE THIS TEXT ###':
                 shuffle = True
             elif line == u'### ALIAS ###':
@@ -150,18 +151,18 @@ class FileState:
                         for key,card in profile.items():
                             note = card.note()
                             if regex.match(key):
-                                if k == 'vocabulary':
+                                if k == currentProfile:
                                     if alias in note.keys():
                                         self.alias[note[alias]] = note[field]
                                         filteredLines.append(note[alias])
                                     else:
                                         filteredLines.append(note[field])
-                                import aqt
-                                aqt.mw.col.profiles = self.profiles
-                                self.profiles[k]['wordsMarkup'][key] = note.fields
-                                self.dueness += sched._smoothedIvl(card)
-                                self.profiles[k]['wordsAll'][key] = card
-                                self.foundvocabs += 1
+                                    import aqt
+                                    aqt.mw.col.profiles = self.profiles
+                                    self.profiles[k]['wordsMarkup'][key] = note.fields
+                                    self.dueness += sched._smoothedIvl(card)
+                                    self.profiles[k]['wordsAll'][key] = card
+                                    self.foundvocabs += 1
             elif state == "mecab":
                 self.exportedVocab = True
                 definitions = line.split(self.sep)
