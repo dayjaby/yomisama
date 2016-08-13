@@ -1,3 +1,6 @@
 *.pyc
-*.zip
+yomichan.zip
+yomichan_dicts.zip
+tools.zip
 tools
+*.db

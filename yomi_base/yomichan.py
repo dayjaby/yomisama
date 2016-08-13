@@ -22,12 +22,31 @@ from yomi_base import korean
 from yomi_base import chinese
 from yomi_base.preference_data import Preferences
 import urllib2
+
 import aqt
-from anki.hooks import addHook
 from aqt.downloader import download
 from aqt.utils import showInfo
+from anki.hooks import addHook
 
 class Yomichan:
+    def __init__(self):
+        self.languages = dict()
+        self.preferences = Preferences()
+        self.preferences.load()
+        try:
+            self.loadLanguages()
+        except:
+            def downloadDictionaries():
+                showInfo(_("No Yomichan dictionaries found\nDownloading now"))
+                ret = download(aqt.mw, 2027900559)
+                if not ret:
+                    raise Exception("Could not download dictionary files")
+                data, fname = ret
+                aqt.mw.addonManager.install(data, fname)
+                aqt.mw.progress.finish()
+            addHook('profileLoaded',downloadDictionaries)
+        self.loadSubscriptions()
+
     def loadLanguages(self):
         if self.preferences.settings['japanese']:
             self.languages['japanese'] = japanese.initLanguage()
@@ -36,29 +55,7 @@ class Yomichan:
         if self.preferences.settings['chinese']:
             self.languages['chinese'] = chinese.initLanguage()
 
-    def __init__(self):
-        self.languages = dict()
-        self.preferences = Preferences()
-        self.preferences.load()
         
-        try:
-            self.loadLanguages()
-        except:
-            def downloadAddons():
-                showInfo(_("Yomichan dictionary files not found.\nDownloading now"))
-                ret = download(aqt.mw,'2027900559')
-                if not ret:
-                    return
-                data, fname = ret
-                aqt.mw.addonManager.install(data, fname)
-                aqt.mw.progress.finish()                
-                self.loadLanguages()
-            addHook('profileLoaded',downloadAddons)
-            
-            
-                    
-        self.loadSubscriptions()
-    
     def loadSubscriptions(self):
         for sub in self.preferences['subscriptions']:
             try:

@@ -22,9 +22,11 @@ import sqlite3
 
 class Dictionary:
     def __init__(self, filename, index=True):
-        with open(filename,"r"):
-            pass
         self.db = sqlite3.connect(filename)
+        def isWord(tags):
+            self.tags = tags.split(" ")
+            return not set(tags.split(" ")).intersection(["p","m","f","g","h","s","u"])
+        self.db.create_function("isWord",1,isWord)
         self.indices = set()
 
 
@@ -33,7 +35,14 @@ class Dictionary:
         self.requireIndex('Terms', 'reading')
 
         cursor = self.db.cursor()
-        cursor.execute('SELECT * FROM Terms WHERE expression {0} ? OR reading=? LIMIT 100'.format('LIKE' if wildcards else '='), (word, word))
+        if wildcards and isinstance(word,list):
+            def constr(x):
+                return u"expression LIKE \"%{0}%\"".format(x)
+            query = u" OR ".join(map(constr,word))
+            self.query = query
+            cursor.execute(u'SELECT * FROM Terms WHERE ('+query+u') AND isWord(tags) AND glossary NOT LIKE "%(obsc)%" AND glossary NOT LIKE "%(arch)%"')
+        else:
+            cursor.execute('SELECT * FROM Terms WHERE expression {0} ? OR reading=? LIMIT 100'.format('LIKE' if wildcards else '='), (word, word))
 
         results = list()
         for expression, reading, glossary, tags in cursor.fetchall():
@@ -56,12 +65,13 @@ class Dictionary:
 
         query = cursor.fetchone()
         if query is not None:
-            character, kunyomi, onyomi, glossary = query
+            character, kunyomi, onyomi, glossary, ongroup = query
             return {
                 'character': character,
                 'kunyomi': kunyomi,
                 'onyomi': onyomi,
-                'glossary': glossary
+                'glossary': glossary,
+                'ongroup': ongroup
             }
 
 

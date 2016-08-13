@@ -1,3 +1,5 @@
 *.db filter=lfs diff=lfs merge=lfs -text
 *.u8 filter=lfs diff=lfs merge=lfs -text
 yomi_base/mplayer/subfont.ttf filter=lfs diff=lfs merge=lfs -text
+yomi_base/japanese/dictionary.zip filter=lfs diff=lfs merge=lfs -text
+yomi_base/korean/dictionary.zip filter=lfs diff=lfs merge=lfs -text
