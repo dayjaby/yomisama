@@ -1,10 +1,7 @@
-rm yomichan.zip
-7z a yomichan.zip -x!yomi_base/japanese -x!yomi_base/chinese -x!yomi_base/korean -x!yomi_base/mplayer/subfont.ttf yomichan.py UserList.py yomi_base 
-cd pysrt
-7z a ..\yomichan.zip pysrt
+./build_zip_core.bat
 
 rm yomichan_dicts.zip
-7z a yomichan_dicts.zip yomi_base/japanese yomi_base/chinese yomi_base/korean
+7z a yomichan_dicts.zip yomi_base/japanese/dictionary.db yomi_base/chinese/cedict_ts.u8 yomi_base/korean/dictionary.db
 
 rm tools.zip
 7z a tools.zip tools yomi_base/mplayer/subfont.ttf

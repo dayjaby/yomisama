@@ -22,6 +22,8 @@ import sqlite3
 
 class Dictionary:
     def __init__(self, filename, index=True):
+        with open(filename,"r"):
+            pass
         self.db = sqlite3.connect(filename)
         self.indices = set()
 

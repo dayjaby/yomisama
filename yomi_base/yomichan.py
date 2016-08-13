@@ -22,21 +22,41 @@ from yomi_base import korean
 from yomi_base import chinese
 from yomi_base.preference_data import Preferences
 import urllib2
-
-
+import aqt
+from anki.hooks import addHook
+from aqt.downloader import download
+from aqt.utils import showInfo
 
 class Yomichan:
-    def __init__(self):
-        self.languages = dict()
-        self.preferences = Preferences()
-        self.preferences.load()
-        
+    def loadLanguages(self):
         if self.preferences.settings['japanese']:
             self.languages['japanese'] = japanese.initLanguage()
         if self.preferences.settings['korean']:
             self.languages['korean'] = korean.initLanguage()
         if self.preferences.settings['chinese']:
             self.languages['chinese'] = chinese.initLanguage()
+
+    def __init__(self):
+        self.languages = dict()
+        self.preferences = Preferences()
+        self.preferences.load()
+        
+        try:
+            self.loadLanguages()
+        except:
+            def downloadAddons():
+                showInfo(_("Yomichan dictionary files not found.\nDownloading now"))
+                ret = download(aqt.mw,'2027900559')
+                if not ret:
+                    return
+                data, fname = ret
+                aqt.mw.addonManager.install(data, fname)
+                aqt.mw.progress.finish()                
+                self.loadLanguages()
+            addHook('profileLoaded',downloadAddons)
+            
+            
+                    
         self.loadSubscriptions()
     
     def loadSubscriptions(self):
