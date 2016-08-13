@@ -194,30 +194,6 @@
           </widget>
          </item>
          <item>
-          <widget class="QRadioButton" name="radioButtonVocab">
-           <property name="text">
-            <string>Vocabulary</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QRadioButton" name="radioButtonKanji">
-           <property name="text">
-            <string>Kanji</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QRadioButton" name="radioButtonSentence">
-           <property name="text">
-            <string>Sentence</string>
-           </property>
-          </widget>
-         </item>
-         <item>
           <spacer name="horizontalSpacer">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>

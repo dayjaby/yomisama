@@ -21,7 +21,21 @@
     <normaloff>:/img/img/icon_logo_32.png</normaloff>:/img/img/icon_logo_32.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_4"/>
+   <layout class="QVBoxLayout" name="verticalLayout_4">
+    <item>
+     <widget class="QPlainTextEdit" name="textContent">
+      <property name="mouseTracking">
+       <bool>true</bool>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+      <property name="plainText">
+       <string>Paste text here or open a .txt file you want to read!</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -91,13 +105,8 @@
     <addaction name="menuTextSize"/>
     <addaction name="separator"/>
     <addaction name="actionToggleAnki"/>
-    <addaction name="actionToggleVocab"/>
-    <addaction name="actionToggleKanji"/>
-    <addaction name="actionToggleWrap"/>
     <addaction name="separator"/>
-    <addaction name="actionToggleJapanese"/>
-    <addaction name="actionToggleKorean"/>
-    <addaction name="actionToggleChinese"/>
+    <addaction name="actionToggleWrap"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -127,6 +136,10 @@
    <addaction name="actionZoomReset"/>
    <addaction name="separator"/>
    <addaction name="actionFind"/>
+   <addaction name="separator"/>
+   <addaction name="actionToggleJapanese"/>
+   <addaction name="actionToggleChinese"/>
+   <addaction name="actionToggleKorean"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QDockWidget" name="dockAnki">
@@ -182,35 +195,13 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="moveVocabulary">
+        <widget class="QPushButton" name="createSentenceCards">
          <property name="text">
-          <string>Move Vocabulary</string>
+          <string>Create sentence cards</string>
          </property>
         </widget>
        </item>
       </layout>
-     </item>
-    </layout>
-   </widget>
-  </widget>
-  <widget class="QDockWidget" name="dockWidget">
-   <attribute name="dockWidgetArea">
-    <number>1</number>
-   </attribute>
-   <widget class="QWidget" name="dockWidgetContents">
-    <layout class="QVBoxLayout" name="verticalLayout">
-     <item>
-      <widget class="QPlainTextEdit" name="textContent">
-       <property name="mouseTracking">
-        <bool>true</bool>
-       </property>
-       <property name="readOnly">
-        <bool>true</bool>
-       </property>
-       <property name="plainText">
-        <string>Paste text here or open a .txt file you want to read!</string>
-       </property>
-      </widget>
      </item>
     </layout>
    </widget>
@@ -327,6 +318,15 @@
    </property>
   </action>
   <action name="actionFind">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset resource="resources.qrc">
      <normaloff>:/img/img/icon_action_find.png</normaloff>:/img/img/icon_action_find.png</iconset>
@@ -339,6 +339,9 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+F</string>
+   </property>
+   <property name="visible">
+    <bool>true</bool>
    </property>
    <property name="iconVisibleInMenu">
     <bool>true</bool>
@@ -448,20 +451,13 @@
     <bool>true</bool>
    </property>
   </action>
-  <action name="actionToggleJapanese">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>&amp;Japanese</string>
-   </property>
-   <property name="toolTip">
-    <string>Enable Japanese dictionary</string>
-   </property>
-  </action>
   <action name="actionToggleKorean">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/img/img/icon_action_ko.png</normaloff>:/img/img/icon_action_ko.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Korean</string>
@@ -469,16 +465,56 @@
    <property name="toolTip">
     <string>Enable Korean dictionary</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+K</string>
+   </property>
   </action>
   <action name="actionToggleChinese">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/img/img/icon_action_ch.png</normaloff>:/img/img/icon_action_ch.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Chinese</string>
    </property>
    <property name="toolTip">
     <string>Enable Chinese dictionary</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+H</string>
+   </property>
+  </action>
+  <action name="actionToggleJapanese">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/img/img/icon_action_jp.png</normaloff>:/img/img/icon_action_jp.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Japanese</string>
+   </property>
+   <property name="toolTip">
+    <string>Enable Japanese dictionary</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+J</string>
+   </property>
+   <property name="visible">
+    <bool>true</bool>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
    </property>
   </action>
  </widget>

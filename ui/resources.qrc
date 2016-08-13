@@ -18,5 +18,8 @@
     <file>img/icon_logo_9.png</file>
     <file>img/icon_logo_32.png</file>
     <file>img/icon_logo_64.png</file>
+    <file>img/icon_action_jp.png</file>
+    <file>img/icon_action_ch.png</file>
+    <file>img/icon_action_ko.png</file>
   </qresource>
 </RCC>
