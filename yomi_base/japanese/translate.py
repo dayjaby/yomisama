@@ -76,12 +76,14 @@ class Translator:
         for entry in self.dictionary.findTerm(root, wildcards):
             key = entry['expression'], entry['reading'], entry['glossary']
             if key not in groups:
-                groups[key] = entry['tags'], source, rules
+                groups[key] = entry['defs'], entry['refs'], entry['tags'], source, rules
 
 
     def formatResult(self, group):
-        (expression, reading, glossary), (tags, source, rules) = group
+        (expression, reading, glossary), (defs, refs, tags, source, rules) = group
         return {
+            'defs': defs,
+            'refs': refs,
             'expression': expression,
             'reading': reading,
             'glossary': glossary,

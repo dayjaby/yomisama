@@ -615,7 +615,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
         if tagIndex != 0:
             self.comboTags.insertItem(0, tagsJoined)
         self.preferences.updateFactTags(tagsJoined)
-
+        self.addNote = [profile['deck'],profile['model'],fields,tagsSplit]
         self.factId = self.anki.addNote(profile['deck'], profile['model'], fields, tagsSplit)
         if self.factId is None:
             self.add = "factId is None"
@@ -668,17 +668,6 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
         result = self.anki.canAddNote(profile['deck'], profile['model'], fields)
                 
         return result
-
-    def executeSentenceCommand(self, command,index,kanjiAllowed):
-        if len(self.profiles["vocabulary"].definitions) > index:
-            definition = self.profiles["vocabulary"].definitions[index]
-            if not kanjiAllowed and definition.get('reading'):
-                definition['expression'] = definition['reading']
-                del definition['reading']
-            if command == 'addSentence':
-                markup = reader_util.markupSentenceExp(definition)
-                self.ankiAddFact('sentence', markup)
-        
 
     def executeDefCommand(self, command, index):
         commands = command.split("_")

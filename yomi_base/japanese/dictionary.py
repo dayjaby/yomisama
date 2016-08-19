@@ -45,12 +45,19 @@ class Dictionary:
             cursor.execute('SELECT * FROM Terms WHERE expression {0} ? OR reading=? LIMIT 100'.format('LIKE' if wildcards else '='), (word, word))
 
         results = list()
-        for expression, reading, glossary, tags in cursor.fetchall():
+        for fetch in cursor.fetchall():
+            if len(fetch)==6:
+                expression, reading, glossary, tags, defs, refs = fetch
+            else:
+                expression, reading, glossary, tags = fetch
+                defs = refs = ''
             results.append({
                 'expression': expression,
                 'reading': reading,
                 'glossary': glossary,
-                'tags': tags.split()
+                'tags': tags.split(),
+                'defs': defs,
+                'refs': refs
             })
 
         return results
