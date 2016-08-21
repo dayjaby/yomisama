@@ -4,6 +4,23 @@ from PyQt4 import QtGui, QtCore
 from aqt.webview import AnkiWebView
 from profile import *
 from .. import reader_util
+from .. import preferences
+
+class VocabKeyFilter(QtCore.QObject):
+    obj = None
+    
+    def eventFilter(self, unused, event):
+        obj = self.obj
+        if event.type() != QtCore.QEvent.KeyPress:
+            return False        
+        if event.key() == preferences.lookupKeys[obj.reader.preferences['lookupKey']][1]:
+            obj.updateSampleFromSelection()
+        else:
+            return False
+        return True
+        
+class Container(object):
+    pass
 
 class VocabularyProfile(GenericProfile):
     name = "vocabulary"
@@ -11,20 +28,26 @@ class VocabularyProfile(GenericProfile):
     descriptor = "VOCABULARY IN THIS TEXT (EXPORT)"
     languages = ["japanese","chinese","korean"]
     sortIndex = 1
-    allowedTags = ['expression', 'kanji', 'hanja', 'reading', 'glossary', 'sentence','line','filename','summary','traditional','language','goo']
+    allowedTags = ['expression', 'kanji', 'hanja', 'reading', 'glossary', 'sentence','line','filename','summary','traditional','language','goo','defs','refs']
 
     def __init__(self,reader):
         GenericProfile.__init__(self,reader)
-        
+        self.history = []
+        self.currentIndex = 0
         self.dockVocab = QtGui.QDockWidget(reader)
         self.dockVocab.setObjectName(fromUtf8("dockVocab"))
         self.dockWidgetContents = QtGui.QWidget()
         self.dockWidgetContents.setObjectName(fromUtf8("dockWidgetContents"))
         self.verticalLayout = QtGui.QVBoxLayout(self.dockWidgetContents)
         self.verticalLayout.setObjectName(fromUtf8("verticalLayout"))
+        self.previousExpression = None
         self.textField = AnkiWebView()
         self.textField.setAcceptDrops(False)
         self.textField.setObjectName("textField")
+        self.keyFilter = VocabKeyFilter()
+        self.keyFilter.obj = self
+        self.keyFilter.textField = self.textField
+        self.textField.installEventFilter(self.keyFilter)
         self.verticalLayout.addWidget(self.textField)
         self.dockVocab.setWidget(self.dockWidgetContents)
         reader.addDockWidget(QtCore.Qt.DockWidgetArea(2), self.dockVocab)
@@ -42,7 +65,27 @@ class VocabularyProfile(GenericProfile):
         QtCore.QObject.connect(self.actionToggleVocab, QtCore.SIGNAL("toggled(bool)"), self.dockVocab.setVisible)
 
         self.dockVocab.installEventFilter(self.reader.keyFilter)
-
+        
+    def updateSampleFromSelection(self):
+        d = Container()
+        d.samplePosStart = 0
+        d.contentSampleFlat = self.textField.selectedText()
+        d.content = ""
+        self.onLookup(d,0,sentenceAndLine=False)
+        
+    def fixHtml(self,html,appendToHistory=True):
+        if html.find(self.buildEmpty()) == -1 and appendToHistory:
+            self.history.append(html)
+        back = len(self.history)>1
+        #self.currentIndex > 0
+        #forward = self.currentIndex < len(self.history)-1
+        if back:
+            backHtml = "<a href='vocabulary_back:0'>&lt;&lt;Back</a>" if back else ""
+            forwardHtml = ""
+            #"<a href='vocabulary_forward:0'>Forward&gt;&gt;</a>" if forward else ""
+            return u"<div>{1} {2}</div><br>{0}".format(html,backHtml,forwardHtml)
+        else:
+            return html
         
     def onVisibilityChanged(self,visible):
         self.actionToggleVocab.setChecked(self.dockVocab.isVisible())
@@ -53,21 +96,31 @@ class VocabularyProfile(GenericProfile):
         if command == "jisho":
             url = QtCore.QUrl(self.reader.preferences["linkToVocab"].format(index))
             QtGui.QDesktopServices().openUrl(url)
+        elif command == "vocabulary_back":
+            self.history.pop()
+            html = self.fixHtml(self.history[-1],appendToHistory=False)
+            self.textField.setHtml(html)
+        elif command == "vocabulary_forward":
+            self.textField.history().forward()
         else:
             index = int(index)
             commands = command.split("_")
             profile = commands.pop(0)
             self.runCommand(commands,index)
         
-    def onLookup(self,d,lengthMatched):
+    def onLookup(self,d,lengthMatched,sentenceAndLine=True):
         if self.dockVocab.isVisible():
-            lengthMatched = self.reader.findTerm(d.contentSampleFlat)
-            sentence, sentenceStart = reader_util.findSentence(d.content, d.samplePosStart)
-            line, lineStart  = reader_util.findLine(d.content, d.samplePosStart)
+            lengthMatched = self.reader.findTerm(d)
+            if sentenceAndLine:
+                sentence, sentenceStart = reader_util.findSentence(d.content, d.samplePosStart)
+                line, lineStart  = reader_util.findLine(d.content, d.samplePosStart)
+            else:
+                sentence = line = ""
             for definition in self.definitions:
                 definition['sentence'] = sentence
                 definition['line'] = line
                 definition['filename'] = self.reader.state.filename
+            self.previousExpression = None
             self.reader.updateVocabDefs('vocabulary')
         return lengthMatched
         
@@ -78,6 +131,7 @@ class VocabularyProfile(GenericProfile):
                 definition['sentence'] = ""
                 definition['line'] = ""
                 definition['filename'] = self.reader.state.filename
+            self.previousExpression = None
             self.reader.updateVocabDefs('vocabulary')
         return lengthMatched        
         
@@ -148,10 +202,13 @@ class VocabularyProfile(GenericProfile):
             summary = u'{expression}'.format(**definition)
 
         return {
+            'defs': definition.get("defs") or unicode(),
+            'refs': definition.get("refs") or unicode(),
             'expression': definition['expression'],
             'hanja': definition.get('hanja') or unicode(),
             'reading': definition.get('reading') or unicode(),
             'glossary': definition.get('glossary') or unicode(),
+            'gender': definition.get('gender') or unicode(),
             'language': definition.get('language') or unicode(),
             'sentence': definition.get('sentence') or unicode(),
             'traditional': definition.get('traditional') or unicode(),
@@ -163,7 +220,7 @@ class VocabularyProfile(GenericProfile):
 
     def buildDefBody(self, definition, index, existsAlready, allowOverwrite):
         reading = unicode()
-        if((definition['expression']+"["+(definition['reading'] or "")+"]") in self.reader.preferences['onlineDicts']['goo']):
+        if(definition.get('language') == 'Japanese' and (definition['expression']+"["+(definition['reading'] or "")+"]") in self.reader.preferences['onlineDicts']['goo']):
             definition['goo'] = self.reader.preferences['onlineDicts']['goo'][definition['expression']+"["+(definition['reading'] or "")+"]"]
 
         if definition.get('reading'):
@@ -176,10 +233,14 @@ class VocabularyProfile(GenericProfile):
         if definition.get('rules'):
             rules = ' &lt; '.join(definition['rules'])
             rules = '<span class="rules">({0})<br></span>'.format(rules)
+            
+        gender = unicode()
+        if definition.get('gender'):
+            gender = '<span class="gender">{0}<br></span>'.format(definition['gender'])
 
         links = '<a href="vocabulary_copy:{0}"><img src="qrc:///img/img/icon_copy_definition.png" align="right"></a>'.format(index)
+        markupExp = self.markup(definition)
         if existsAlready is not None:
-            markupExp = self.markup(definition)
             defReading = definition.copy()
             if defReading.get('reading'):
                 del defReading['reading']
@@ -195,22 +256,41 @@ class VocabularyProfile(GenericProfile):
                 elif markupExp is not None and markupReading['summary'] != markupExp['summary']:
                     if allowOverwrite:
                         links += '<a href="vocabulary_overwrite_reading:{0}"><img src="qrc:///img/img/icon_overwrite_reading.png" align="right"></a>'.format(index)
-        glossary = definition['glossary']
+        def glossary(hide):
+            if hide:
+                return u"""<a onclick='document.getElementById("glossary{1}").style.display="block";this.style.display="none"' href="javascript:void(0);">[Show English]<br></a><span class="glossary" id="glossary{1}" style="display:none;">{0}<br></span>""".format(definition['glossary'],index)
+            else:
+                return u'<span class="glossary" id="glossary">{0}<br></span>'.format(definition['glossary'])
         foundOnlineDictEntry = False
-        dictionaryEntries = ""
-        if(definition.get("goo")):
-            dictionaryEntries += "<span class='online'>" + definition["goo"] + "</span>"
+        if markupExp["defs"] != "":
+            dictionaryEntries = "<span class='online'>"+ markupExp["defs"] + " " + markupExp["refs"] + "</span>"
             foundOnlineDictEntry = True
         else:
-            dictionaryEntries = '<a href="vocabulary_goo:{0}">[Goo]</a>'.format(index)
-        if foundOnlineDictEntry and self.reader.preferences['hideTranslation']:
-            glossary = ""
+            dictionaryEntries = ""
+        if(definition.get("goo")):
+            dictionaryEntries += "<br><span class='online'>" + definition["goo"] + "</span>"
+            foundOnlineDictEntry = True
+        elif(definition.get('language') == 'Japanese'):
+            dictionaryEntries += '<br><a href="vocabulary_goo:{0}">[Goo]</a>'.format(index)
+        if(definition.get('language') == 'Japanese'):
+            expression = '<span class="expression"><a href="jisho:{0}">{0}</a></span>'.format(definition["expression"])
+            reading = reading + '<br>'
+        elif(definition.get('language') == 'German'):
+            if self.previousExpression == definition['expression']:
+                expression = ''
+            else:
+                expression = '<span class="expression">{0}</span><br>'.format(definition['expression'] + ' ' + gender)
+                self.previousExpression = definition['expression']
+        else:
+            expression = '<span class="expression">{0}</span>'.format(definition['expression'])
+            reading = reading + '<br>'
         html = u"""
             <span class="links">{0}</span>
-            <span class="expression"><a href="jisho:{1}">{1}</a><br></span>
+            {1}
             {2}
-            <span class="glossary">{3}<br></span>
-            {4}{5}
-            <br clear="all">""".format(links, definition['expression'], reading, glossary, rules,dictionaryEntries)
+            {3}
+            {4}
+            {5}
+            <br clear="all">""".format(links, expression, reading, glossary(foundOnlineDictEntry and self.reader.preferences['hideTranslation']), rules,dictionaryEntries)
 
         return html

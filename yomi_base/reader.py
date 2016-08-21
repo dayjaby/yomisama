@@ -21,7 +21,6 @@ from anki.utils import ids2str, intTime
 import about
 import constants
 import gen.reader_ui
-import japanese.util
 import os
 import aqt
 import preferences
@@ -29,9 +28,6 @@ import reader_util
 import updates
 import sys
 from yomi_base import profiles
-from yomi_base import japanese
-from yomi_base import korean
-from yomi_base import chinese
 from yomi_base.file_state import FileState
 
 
@@ -127,9 +123,9 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
         self.actionSave.triggered.connect(self.onActionSave)
         self.actionPreferences.triggered.connect(self.onActionPreferences)
         self.actionToggleWrap.toggled.connect(self.onActionToggleWrap)
-        self.actionToggleJapanese.toggled.connect(self.onActionToggleJapanese)
-        self.actionToggleKorean.toggled.connect(self.onActionToggleKorean)
-        self.actionToggleChinese.toggled.connect(self.onActionToggleChinese)
+        self.actionToggleJapanese.toggled.connect(self.onActionToggleLanguage("japanese"))
+        self.actionToggleKorean.toggled.connect(self.onActionToggleLanguage("korean"))
+        self.actionToggleChinese.toggled.connect(self.onActionToggleLanguage("chinese"))
         self.actionZoomIn.triggered.connect(self.onActionZoomIn)
         self.actionZoomOut.triggered.connect(self.onActionZoomOut)
         self.actionZoomReset.triggered.connect(self.onActionZoomReset)
@@ -367,21 +363,12 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
         self.preferences['wordWrap'] = wrap
         self.textContent.setLineWrapMode(QtGui.QPlainTextEdit.WidgetWidth if self.preferences['wordWrap'] else QtGui.QPlainTextEdit.NoWrap)
 
-    def onActionToggleJapanese(self, jpn):
-        self.preferences['japanese'] = jpn
-        if 'japanese' not in self.languages and jpn:
-            self.languages['japanese'] = japanese.initLanguage()
-    
-    def onActionToggleKorean(self, krn):
-        self.preferences['korean'] = krn
-        if 'korean' not in self.languages and krn:
-            self.languages['korean'] = korean.initLanguage()
-
-    def onActionToggleChinese(self, chn):
-        self.preferences['chinese'] = chn
-        if 'chinese' not in self.languages and chn:
-            self.languages['chinese'] = chinese.initLanguage()
-
+    def onActionToggleLanguage(self, language):
+        def inner(enable):
+            self.preferences[language] = enable
+            if language not in self.languages and enable:
+                self.plugin.loadLanguage(language,callback=None)
+        return inner
             
     def onActionHomepage(self):
         url = QtCore.QUrl('http://foosoft.net/projects/yomichan')

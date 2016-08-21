@@ -71,6 +71,7 @@
     "japanese":true,
     "korean":false,
     "chinese":false,
+    "german":false,
     "lookupKey":1,
     "linkToKanji":"http://jisho.org/search/#kanji {0}",
     "linkToVocab":"http://jisho.org/search/{0}",

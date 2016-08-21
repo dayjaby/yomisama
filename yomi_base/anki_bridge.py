@@ -147,6 +147,7 @@ document.getElementById("words").innerHTML = document.getElementById("words").in
         self.noteCreate = "before create note"
         note = anki.notes.Note(self.collection(), model)
         self.noteCreate = "after create note"
+        self.note = note
         note.model()['did'] = deck['id']
         note.tags = tags
 

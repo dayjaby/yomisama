@@ -53,7 +53,7 @@ class GenericProfile:
         if options.get('trim', True):
             defs = defs[:self.reader.preferences['maxResults']]
         html = self.buildDefinitions(defs,self.reader.ankiIsFactValid,self.reader.anki is not None)
-        
+        html = self.fixHtml(html)
         control = self.textField
         position = control.page().mainFrame().scrollBarValue(QtCore.Qt.Vertical)
         self.textField.setHtml(html)
@@ -61,6 +61,8 @@ class GenericProfile:
         if options.get('scroll', False):
             control.page().mainFrame().setScrollBarValue(QtCore.Qt.Vertical,position)
 
+    def fixHtml(self,html):
+        return html
 
     def buildDefHeader(self):
         palette = QtGui.QApplication.palette()
@@ -70,7 +72,7 @@ class GenericProfile:
         return u"""
             <html><head><style>
             body {{ background-color: {0}; color: {1}; font-size: 11pt; font-family:Arial; }}
-            span.expression {{ font-size: 15pt; font-family:Arial; }}
+            span.expression {{ font-size: 18pt; font-family:Arial; }}
             span.online {{ font-size: 15pt; font-family:Arial; }}
             span.online ol {{ list-style-type: none; }}
             </style></head><body>""".format(toolTipBg, toolTipFg)
@@ -88,7 +90,7 @@ class GenericProfile:
 
         if len(definitions) > 0:
             for i, definition in enumerate(definitions):
-               self. html += self.buildDefBody(definition, i, query, allowOverwrite)
+               self.html += self.buildDefBody(definition, i, query, allowOverwrite)
         else:
             self.html += self.buildEmpty()
 

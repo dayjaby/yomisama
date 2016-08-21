@@ -17,9 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from yomi_base import japanese
-from yomi_base import korean
-from yomi_base import chinese
 from yomi_base.preference_data import Preferences
 import urllib2
 
@@ -33,9 +30,7 @@ class Yomichan:
         self.languages = dict()
         self.preferences = Preferences()
         self.preferences.load()
-        try:
-            self.loadLanguages()
-        except:
+        if not self.loadLanguages():
             def downloadDictionaries():
                 showInfo(_("No Yomichan dictionaries found\nDownloading now"))
                 ret = download(aqt.mw, 2027900559)
@@ -48,14 +43,24 @@ class Yomichan:
         self.loadSubscriptions()
 
     def loadLanguages(self):
-        if self.preferences.settings['japanese']:
-            self.languages['japanese'] = japanese.initLanguage()
-        if self.preferences.settings['korean']:
-            self.languages['korean'] = korean.initLanguage()
-        if self.preferences.settings['chinese']:
-            self.languages['chinese'] = chinese.initLanguage()
+        languageFound = False
+        languages = ["japanese","korean","chinese","german"]
+        for language in languages:
+            languageFound |= self.loadLanguage(language)
 
-        
+        return languageFound
+
+    def loadLanguage(self,language,callback=None):
+        try:
+            module = getattr(__import__('yomi_base.languages.'+language, globals(), locals(), [], -1).languages,language)
+            self.languages[language] = module.initLanguage(self.preferences.settings[language])
+            return True
+        except Exception as e:
+            raise e
+            if callback:
+                callback(e)
+        return False
+            
     def loadSubscriptions(self):
         for sub in self.preferences['subscriptions']:
             try:
