@@ -373,8 +373,9 @@ class YomichanPlugin(Yomichan):
         return self.fileCache
 
 
-yomichanInstance = YomichanPlugin()        
-        
+yomichanInstance = YomichanPlugin()
+
+
 def onBeforeStateChange(state, oldState, *args):
     yomichanInstance.newestState = state
     yomichanInstance.anki.createYomichanModel()

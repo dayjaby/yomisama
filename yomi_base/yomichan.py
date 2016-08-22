@@ -53,10 +53,9 @@ class Yomichan:
     def loadLanguage(self,language,callback=None):
         try:
             module = getattr(__import__('yomi_base.languages.'+language, globals(), locals(), [], -1).languages,language)
-            self.languages[language] = module.initLanguage(self.preferences.settings[language])
+            self.languages[language] = module.initLanguage(self.preferences,self.preferences.settings[language])
             return True
         except Exception as e:
-            raise e
             if callback:
                 callback(e)
         return False

@@ -21,9 +21,9 @@ import os.path
 import translate
 
 
-def initLanguage(load=True):
+def initLanguage(preferences,load=True):
     directory = os.path.dirname(__file__)
-    dic = dictionary.Dictionary(os.path.join(directory, 'de-eng.u8'), load=load)
+    dic = dictionary.Dictionary(os.path.join(directory, 'de-eng.txt'), load=load)
     if load:
         return translate.Translator(None,dic)
         

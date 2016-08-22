@@ -126,6 +126,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
         self.actionToggleJapanese.toggled.connect(self.onActionToggleLanguage("japanese"))
         self.actionToggleKorean.toggled.connect(self.onActionToggleLanguage("korean"))
         self.actionToggleChinese.toggled.connect(self.onActionToggleLanguage("chinese"))
+        self.actionToggleGerman.toggled.connect(self.onActionToggleLanguage("german"))
         self.actionZoomIn.triggered.connect(self.onActionZoomIn)
         self.actionZoomOut.triggered.connect(self.onActionZoomOut)
         self.actionZoomReset.triggered.connect(self.onActionZoomReset)
@@ -368,6 +369,8 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
             self.preferences[language] = enable
             if language not in self.languages and enable:
                 self.plugin.loadLanguage(language,callback=None)
+            if language in self.languages and not enable:
+                del self.languages[language]
         return inner
             
     def onActionHomepage(self):

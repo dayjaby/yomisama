@@ -21,10 +21,9 @@ import dictionary
 import os.path
 import translate
 
-
-def initLanguage(load=True):
+def initLanguage(preferences,load=True):
     directory = os.path.dirname(__file__)
-    dic = dictionary.Dictionary(os.path.join(directory, 'dictionary.db'), load=load)
+    dic = dictionary.Dictionary(os.path.join(directory, preferences["japaneseDict"]), load=load)
     if load:
         return translate.Translator(
             deinflect.Deinflector(os.path.join(directory, 'deinflect.json')),

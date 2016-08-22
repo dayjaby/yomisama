@@ -1,7 +1,10 @@
 *.pyc
 yomichan.zip
 yomichan_dicts.zip
+yomichan_dict_european.zip
 tools.zip
 tools
+yomi_base/languages/german/de-eng.txt
 *.db
 *.u8
+.idea

@@ -21,23 +21,23 @@ from collections import defaultdict
 
 class Dictionary:
     def __init__(self, filename,load=True):
-        self.file = open(filename)
-        if load:
-            self.entries = defaultdict(list)
-            pattern = re.compile(r"^([^\#][^\{\[\t]*)(\{.*\}|).*?\t(.*?)\s([^\s]*?)$")
-            for line in self.file:
-                for match in pattern.findall(line):
-                    match0 = match[0].decode('utf-8').strip()
-                    search = re.sub(r"\(.*?\)",r"",match0)
-                    search = re.sub(r"\s\s",r"\s",search).strip()
-                    self.entries[search].append({
-                        'expression': match0,
-                        'search': search,
-                        'gender': match[1].decode('utf-8'),
-                        'glossary': match[2].decode('utf-8'),
-                        'tags': match[3].decode('utf-8'),
-                        'language': u'German',
-                    })
+        with open(filename) as file:
+            if load:
+                self.entries = defaultdict(list)
+                pattern = re.compile(r"^([^\#][^\{\[\t]*)(\{.*?\}|)(.*?)\t(.*?)\s([^\s]*?)$")
+                for line in file:
+                    for match in pattern.findall(line):
+                        match0 = match[0].decode('utf-8')
+                        search = re.sub(r"\(.*?\)",r"",match0.strip())
+                        search = re.sub(r"\s\s",r"\s",search).strip()
+                        self.entries[search].append({
+                            'expression': (match0+match[2].decode('utf-8')).strip(),
+                            'search': search,
+                            'gender': match[1].decode('utf-8'),
+                            'glossary': match[3].decode('utf-8'),
+                            'tags': match[4].decode('utf-8'),
+                            'language': u'German',
+                        })
 
 
     def findTerm(self, word, wildcards=False):

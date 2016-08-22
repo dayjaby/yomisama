@@ -21,7 +21,7 @@ import os.path
 import translate
 
 
-def initLanguage(load=True):
+def initLanguage(preferences,load=True):
     directory = os.path.dirname(__file__)
     dic = dictionary.Dictionary(os.path.join(directory, 'cedict_ts.u8'), load=load)
     if load:

@@ -140,6 +140,7 @@
    <addaction name="actionToggleJapanese"/>
    <addaction name="actionToggleChinese"/>
    <addaction name="actionToggleKorean"/>
+   <addaction name="actionToggleGerman"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QDockWidget" name="dockAnki">
@@ -515,6 +516,24 @@
    </property>
    <property name="iconVisibleInMenu">
     <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionToggleGerman">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/img/img/icon_action_de.png</normaloff>:/img/img/icon_action_de.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;German</string>
+   </property>
+   <property name="toolTip">
+    <string>Enable German dictionary</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+K</string>
    </property>
   </action>
  </widget>

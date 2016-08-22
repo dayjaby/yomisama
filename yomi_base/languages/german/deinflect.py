@@ -26,7 +26,8 @@ os.environ["EXECJS_RUNTIME"] = 'PyV8'
 class Deinflector:
     def __init__(self,path):
         try:
-            self.javascript = execjs.compile(open(path).read())
+            with open(path) as file:
+                self.javascript = execjs.compile(file.read())
         except:
             self.pyv8 = False
         else:

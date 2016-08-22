@@ -213,6 +213,12 @@ class Ui_MainWindowReader(object):
         self.actionToggleJapanese.setVisible(True)
         self.actionToggleJapanese.setIconVisibleInMenu(True)
         self.actionToggleJapanese.setObjectName(_fromUtf8("actionToggleJapanese"))
+        self.actionToggleGerman = QtGui.QAction(MainWindowReader)
+        self.actionToggleGerman.setCheckable(True)
+        icon15 = QtGui.QIcon()
+        icon15.addPixmap(QtGui.QPixmap(_fromUtf8(":/img/img/icon_action_de.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.actionToggleGerman.setIcon(icon15)
+        self.actionToggleGerman.setObjectName(_fromUtf8("actionToggleGerman"))
         self.menuImport.addAction(self.actionKindleDeck)
         self.menuImport.addAction(self.actionWordList)
         self.menuFile.addAction(self.actionOpen)
@@ -255,6 +261,7 @@ class Ui_MainWindowReader(object):
         self.toolBar.addAction(self.actionToggleJapanese)
         self.toolBar.addAction(self.actionToggleChinese)
         self.toolBar.addAction(self.actionToggleKorean)
+        self.toolBar.addAction(self.actionToggleGerman)
 
         self.retranslateUi(MainWindowReader)
         QtCore.QObject.connect(self.actionQuit, QtCore.SIGNAL(_fromUtf8("triggered()")), MainWindowReader.close)
@@ -322,5 +329,8 @@ class Ui_MainWindowReader(object):
         self.actionToggleJapanese.setText(_translate("MainWindowReader", "&Japanese", None))
         self.actionToggleJapanese.setToolTip(_translate("MainWindowReader", "Enable Japanese dictionary", None))
         self.actionToggleJapanese.setShortcut(_translate("MainWindowReader", "Ctrl+J", None))
+        self.actionToggleGerman.setText(_translate("MainWindowReader", "&German", None))
+        self.actionToggleGerman.setToolTip(_translate("MainWindowReader", "Enable German dictionary", None))
+        self.actionToggleGerman.setShortcut(_translate("MainWindowReader", "Ctrl+K", None))
 
 import resources_rc

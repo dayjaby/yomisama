@@ -72,7 +72,9 @@ class GenericProfile:
         return u"""
             <html><head><style>
             body {{ background-color: {0}; color: {1}; font-size: 11pt; font-family:Arial; }}
-            span.expression {{ font-size: 18pt; font-family:Arial; }}
+            span.expression {{ font-size: 15pt; font-family:Arial; }}
+            span.expression a {{ text-decoration: none; }}
+            span.german {{ font-size: 18pt; font-family:Arial; }}
             span.online {{ font-size: 15pt; font-family:Arial; }}
             span.online ol {{ list-style-type: none; }}
             </style></head><body>""".format(toolTipBg, toolTipFg)

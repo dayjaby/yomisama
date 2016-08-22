@@ -21,5 +21,10 @@
     <file>img/icon_action_jp.png</file>
     <file>img/icon_action_ch.png</file>
     <file>img/icon_action_ko.png</file>
+    <file>img/icon_action_de.png</file>
+    <file>img/icon_action_es.png</file>
+    <file>img/icon_action_fr.png</file>
+    <file>img/icon_action_it.png</file>
+    <file>img/icon_action_nl.png</file>
   </qresource>
 </RCC>
