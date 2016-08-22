@@ -5,6 +5,7 @@ yomichan_dict_european.zip
 tools.zip
 tools
 yomi_base/languages/german/de-eng.txt
+yomi_base/languages/spanish/es-eng.txt
 *.db
 *.u8
 .idea

@@ -44,7 +44,7 @@ class Yomichan:
 
     def loadLanguages(self):
         languageFound = False
-        languages = ["japanese","korean","chinese","german"]
+        languages = ["japanese","korean","chinese","german","spanish","french"]
         for language in languages:
             languageFound |= self.loadLanguage(language)
 

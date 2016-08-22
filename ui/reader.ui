@@ -141,6 +141,8 @@
    <addaction name="actionToggleChinese"/>
    <addaction name="actionToggleKorean"/>
    <addaction name="actionToggleGerman"/>
+   <addaction name="actionToggleSpanish"/>
+   <addaction name="actionToggleFrench"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QDockWidget" name="dockAnki">
@@ -533,7 +535,40 @@
     <string>Enable German dictionary</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+K</string>
+    <string>Ctrl+G</string>
+   </property>
+  </action>
+  <action name="actionToggleSpanish">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/img/img/icon_action_es.png</normaloff>:/img/img/icon_action_es.png</iconset>
+   </property>
+   <property name="text">
+    <string>Spanish</string>
+   </property>
+   <property name="toolTip">
+    <string>Enable Spanish dictionary</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
+   </property>
+  </action>
+  <action name="actionToggleFrench">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/img/img/icon_action_fr.png</normaloff>:/img/img/icon_action_fr.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;French</string>
+   </property>
+   <property name="toolTip">
+    <string>Enable French dictionary</string>
    </property>
   </action>
  </widget>
