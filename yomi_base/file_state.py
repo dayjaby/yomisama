@@ -203,7 +203,7 @@ class FileState:
                         markup[exportedTags[i]] = field.replace(self.lineBreak,u'\n')
                     markup['filename'] = self.filename
                     self.profiles[currentProfile]['wordsMarkup'][line] = markup
-                if line in allCards[currentProfile]:
+                if currentProfile in allCards and line in allCards[currentProfile]:
                     card = allCards[currentProfile][line]
                     self.dueness += sched._smoothedIvl(card)
                     self.profiles[currentProfile]['wordsAll'][line] = card
