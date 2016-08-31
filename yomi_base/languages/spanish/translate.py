@@ -10,8 +10,8 @@ class Translator:
         self.dictionary = dictionary
 
     def findTerm(self, text, wildcards=False):
-        s = text.content
-        p = text.samplePosStart
+        s = text["content"]
+        p = text["samplePosStart"]
         p1 = max([s[:p].rfind(d) for d in delimiters]) + 1
         p2 = min([x for x in [s[p:].find(d) for d in delimiters] if x>=0]+[len(s)-1]) + p
         w = s[p1:p2]

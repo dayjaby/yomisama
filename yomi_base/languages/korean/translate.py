@@ -28,7 +28,7 @@ class Translator:
 
 
     def findTerm(self, text, wildcards=False):
-        text = text.contentSampleFlat
+        text = text["contentSampleFlat"]
         text = util.sanitize(text, wildcards=wildcards)
 
         groups = dict()

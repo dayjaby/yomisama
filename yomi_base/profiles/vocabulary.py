@@ -21,9 +21,6 @@ class VocabKeyFilter(QtCore.QObject):
                 return True
         return False
 
-class Container(object):
-    pass
-
 class VocabularyProfile(GenericProfile):
     name = "vocabulary"
     displayedName = "Vocabulary"
@@ -69,10 +66,11 @@ class VocabularyProfile(GenericProfile):
         self.dockVocab.installEventFilter(self.reader.keyFilter)
         
     def updateSampleFromSelection(self):
-        d = Container()
-        d.samplePosStart = 0
-        d.contentSampleFlat = self.textField.selectedText()
-        d.content = ""
+        d = {
+            "samplePosStart": 0,
+            "contentSampleFlat": self.textField.selectedText(),
+            "content": ""
+        }
         self.onLookup(d,0,sentenceAndLine=False)
         
     def fixHtml(self,html,appendToHistory=True):
@@ -105,17 +103,18 @@ class VocabularyProfile(GenericProfile):
         elif command == "vocabulary_forward":
             self.textField.history().forward()
         else:
-            index = int(index)
-            commands = command.split("_")
-            profile = commands.pop(0)
-            self.runCommand(commands,index)
+            if not index.startswith("void"):
+                index = int(index)
+                commands = command.split("_")
+                profile = commands.pop(0)
+                self.runCommand(commands,index)
         
     def onLookup(self,d,lengthMatched,sentenceAndLine=True):
         if self.dockVocab.isVisible():
             lengthMatched = self.reader.findTerm(d)
             if sentenceAndLine:
-                sentence, sentenceStart = reader_util.findSentence(d.content, d.samplePosStart)
-                line, lineStart  = reader_util.findLine(d.content, d.samplePosStart)
+                sentence, sentenceStart = reader_util.findSentence(d['content'], d['samplePosStart'])
+                line, lineStart  = reader_util.findLine(d['content'], d['samplePosStart'])
             else:
                 sentence = line = ""
             for definition in self.definitions:
@@ -220,7 +219,7 @@ class VocabularyProfile(GenericProfile):
             'summary': summary
         }
 
-    def buildDefBody(self, definition, index, existsAlready, allowOverwrite):
+    def buildDefBody(self, definition, index, allowOverwrite):
         reading = unicode()
         if(definition.get('language') == 'Japanese' and (definition['expression']+"["+(definition['reading'] or "")+"]") in self.reader.preferences['onlineDicts']['goo']):
             definition['goo'] = self.reader.preferences['onlineDicts']['goo'][definition['expression']+"["+(definition['reading'] or "")+"]"]
@@ -242,22 +241,23 @@ class VocabularyProfile(GenericProfile):
 
         links = '<a href="vocabulary_copy:{0}"><img src="qrc:///img/img/icon_copy_definition.png" align="right"></a>'.format(index)
         markupExp = self.markup(definition)
-        if existsAlready is not None:
-            defReading = definition.copy()
-            if defReading.get('reading'):
-                del defReading['reading']
-            markupReading = self.markup(defReading)
-            if existsAlready('vocabulary', markupExp, index):
-                links += '<a href="vocabulary_add:{0}"><img src="qrc:///img/img/icon_add_expression.png" align="right"></a>'.format(index)
-            else:
+        defReading = definition.copy()
+        if defReading.get('reading'):
+            defReading['expression'] = defReading['reading']
+            del defReading['reading']
+        markupReading = self.markup(defReading)
+        if self.ankiIsFactValid('vocabulary', markupExp, index):
+            links += u'<a href="vocabulary_add:{0}"><img src="qrc:///img/img/icon_add_expression.png" align="right"></a>'.format(index)
+        else:
+            if allowOverwrite:
+                links += u'<a href="vocabulary_overwrite:{0}"><img src="qrc:///img/img/icon_overwrite_expression.png" align="right"></a>'.format(index)
+        if markupReading is not None and definition.get('language') == 'Japanese':
+            if self.ankiIsFactValid('vocabulary', markupReading, index):
+                links += u'<a href="vocabulary_add_reading:{0}"><img src="qrc:///img/img/icon_add_reading.png" align="right"></a>'.format(index)
+            elif markupExp is not None and markupReading['summary'] != markupExp['summary']:
                 if allowOverwrite:
-                    links += '<a href="vocabulary_overwrite:{0}"><img src="qrc:///img/img/icon_overwrite_expression.png" align="right"></a>'.format(index)
-            if markupReading is not None and definition.get('language') == 'Japanese':
-                if existsAlready('vocabulary', markupReading, index):
-                    links += '<a href="vocabulary_add_reading:{0}"><img src="qrc:///img/img/icon_add_reading.png" align="right"></a>'.format(index)
-                elif markupExp is not None and markupReading['summary'] != markupExp['summary']:
-                    if allowOverwrite:
-                        links += '<a href="vocabulary_overwrite_reading:{0}"><img src="qrc:///img/img/icon_overwrite_reading.png" align="right"></a>'.format(index)
+                    links += u'<a href="vocabulary_overwrite_reading:{0}"><img src="qrc:///img/img/icon_overwrite_reading.png" align="right"></a>'.format(index)
+
         def glossary(hide):
             if hide:
                 return u"""<a onclick='document.getElementById("glossary{1}").style.display="block";this.style.display="none"' href="javascript:void(0);">[Show English]<br></a><span class="glossary" id="glossary{1}" style="display:none;">{0}<br></span>""".format(definition['glossary'],index)
@@ -265,26 +265,26 @@ class VocabularyProfile(GenericProfile):
                 return u'<span class="glossary" id="glossary">{0}<br></span>'.format(definition['glossary'])
         foundOnlineDictEntry = False
         if markupExp["defs"] != "":
-            dictionaryEntries = "<span class='online'>"+ markupExp["defs"] + " " + markupExp["refs"] + "</span>"
+            dictionaryEntries = u"<span class='online'>"+ markupExp["defs"] + " " + markupExp["refs"] + "</span>"
             foundOnlineDictEntry = True
         else:
             dictionaryEntries = ""
         if(definition.get("goo")):
-            dictionaryEntries += "<br><span class='online'>" + definition["goo"] + "</span><br>"
+            dictionaryEntries += u"<br><span class='online'>" + definition["goo"] + "</span><br>"
             foundOnlineDictEntry = True
         elif(definition.get('language') == 'Japanese'):
-            dictionaryEntries += '<br><a href="vocabulary_goo:{0}">[Goo]</a><br>'.format(index)
+            dictionaryEntries += u'<br><a href="vocabulary_goo:{0}">[Goo]</a><br>'.format(index)
         if(definition.get('language') == 'Japanese'):
-            expression = '<span class="expression"><a href="jisho:{0}">{0}</a></span>'.format(definition["expression"])
+            expression = u'<span class="expression"><a href="jisho:{0}">{0}</a></span>'.format(definition["expression"])
             reading = reading + '<br>'
         elif(definition.get('language') == 'German'):
             if self.previousExpression == definition['expression']:
                 expression = ''
             else:
-                expression = '<span class="german">{0}</span><br>'.format(definition['expression'] + ' ' + gender)
+                expression = u'<span class="german">{0}</span><br>'.format(definition['expression'] + ' ' + gender)
                 self.previousExpression = definition['expression']
         else:
-            expression = '<span class="expression">{0}</span>'.format(definition['expression'])
+            expression = u'<span class="expression">{0}</span>'.format(definition['expression'])
             reading = reading + '<br>'
         html = u"""
             <span class="links">{0}</span>
@@ -295,6 +295,6 @@ class VocabularyProfile(GenericProfile):
             {5}
             <br clear="all">""".format(links, expression, reading, glossary(foundOnlineDictEntry and self.reader.preferences['hideTranslation']), rules,dictionaryEntries)
         if (definition.get('language') != 'German'):
-            html = "<hr>" + html
+            html = u"<hr>" + html
 
         return html

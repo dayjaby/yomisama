@@ -28,11 +28,11 @@ class Translator:
 
 
     def findTerm(self, text, wildcards=False):
-        text = text.contentSampleFlat
         groups = dict()
         if wildcards and isinstance(text,list):
             self.processTerm(groups,u"".join(text),root=text,wildcards=True)
         else:
+            text = text["contentSampleFlat"]
             text = util.sanitize(text, wildcards=wildcards)
 
                         

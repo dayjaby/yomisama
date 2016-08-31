@@ -230,7 +230,9 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
         self.actionToggleJapanese.setChecked(self.preferences['japanese'])
         self.actionToggleKorean.setChecked(self.preferences['korean'])
         self.actionToggleChinese.setChecked(self.preferences['chinese'])
-
+        self.actionToggleGerman.setChecked(self.preferences['german'])
+        self.actionToggleSpanish.setChecked(self.preferences['spanish'])
+        self.actionToggleFrench.setChecked(self.preferences['french'])
 
     def closeEvent(self, event):
         self.preferences['windowState'] = str(self.saveState().toBase64())
@@ -638,29 +640,6 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
             profile.updateDefinitions(scroll=True)
         return True
 
-
-    def ankiIsFactValid(self, prfl, markup, index=None):
-        if markup is None:
-            return False
-
-        if self.anki is None:
-            return False
-
-        profile = self.preferences['profiles'].get(prfl)
-        if profile is None:
-            return False
-        fields = reader_util.formatFields(profile['fields'], markup)
-        key = self.anki.getModelKey(profile['model'])
-        if self.currentFile.profiles[prfl]['longestMatch'] is None:
-            self.currentFile.profiles[prfl]['longestMatch'] = index
-        if key is not None and key in fields and fields[key] in self.currentFile.profiles[prfl]['wordsAll']:
-            if len(fields[key]) > len(self.currentFile.profiles[prfl]['longestMatchKey']):
-                self.currentFile.profiles[prfl]['longestMatch'] = index
-                self.currentFile.profiles[prfl]['longestMatchKey'] = fields[key]
-        result = self.anki.canAddNote(profile['deck'], profile['model'], fields)
-                
-        return result
-
     def executeDefCommand(self, command, index):
         commands = command.split("_")
         profile = commands.pop(0)
@@ -702,28 +681,28 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
             
     def updateSampleFromPosition(self):
         self.samplePosEnd = self.state.scanPosition + self.preferences['scanLength']
-        d = Container()
+        d = dict()
         cursor = self.textContent.textCursor()
-        d.content = unicode(self.textContent.toPlainText())
-        d.samplePosStart = self.state.scanPosition
-        if d.samplePosStart >= len(d.content):
+        d['content'] = unicode(self.textContent.toPlainText())
+        d['samplePosStart'] = self.state.scanPosition
+        if d['samplePosStart'] >= len(d['content']):
             return
-        if self.samplePosEnd > len(d.content):
-            self.samplePosEnd = len(d.content)
-        d.contentSample = d.content[d.samplePosStart:self.samplePosEnd]
+        if self.samplePosEnd > len(d['content']):
+            self.samplePosEnd = len(d['content'])
+        d['contentSample'] = d['content'][d['samplePosStart']:self.samplePosEnd]
         alias = None
         if self.currentFile is not None:
             for eng,jpn in self.currentFile.alias.items():
-                if d.content[d.samplePosStart:].startswith(eng):
-                    d.contentSample = jpn
-                    d.contentSampleFlat = jpn
+                if d['content'][d['samplePosStart']:].startswith(eng):
+                    d['contentSample'] = jpn
+                    d['contentSampleFlat'] = jpn
                     alias = eng
                     break
         if alias is None:
-            d.contentSample = d.content[d.samplePosStart:self.samplePosEnd]
-            d.contentSampleFlat = d.contentSample.replace(u'\n', unicode())
+            d['contentSample'] = d['content'][d['samplePosStart']:self.samplePosEnd]
+            d['contentSampleFlat'] = d['contentSample'].replace(u'\n', unicode())
 
-        if len(d.content) == 0:
+        if len(d['content']) == 0:
             return
             
         lengthMatched = 0
@@ -732,15 +711,15 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
             lengthMatched = profile.onLookup(d,lengthMatched)
 
         lengthSelect = 0
-        for c in d.contentSample or lengthSelect > lengthMatched:
+        for c in d['contentSample'] or lengthSelect > lengthMatched:
             if lengthMatched <= 0:
                 break
             lengthSelect += 1
             if c != u'\n':
                 lengthMatched -= 1
         if alias is not None:
-            lengthSelect = len(d.contentSample)
-        self.samplePosStart = d.samplePosStart
+            lengthSelect = len(d['contentSample'])
+        self.samplePosStart = d['samplePosStart']
         self.samplePosEnd = self.samplePosStart + lengthSelect
         cursor.setPosition(self.samplePosStart, QtGui.QTextCursor.MoveAnchor)
         cursor.setPosition(self.samplePosStart + lengthSelect, QtGui.QTextCursor.KeepAnchor)

@@ -288,7 +288,7 @@ class MovieProfile(GenericProfile):
             'audio': "[sound:{0}]".format(os.path.relpath(outMp3,self.reader.anki.collection().media.dir()).replace("\\","/")),
             'nosub': "Yes" if nosub else ""
         }
-        self.canAddNote = self.reader.ankiIsFactValid("movie",self.definition)
+        self.canAddNote = self.ankiIsFactValid("movie",self.definition)
         if self.canAddNote:
             self.fact = "add"
             self.addFact(self.definition)

@@ -1,5 +1,5 @@
 from PyQt4 import QtCore, QtGui
-
+from yomi_base import reader_util
 
 try:
     fromUtf8 = QtCore.QString.fromUtf8
@@ -28,6 +28,8 @@ class GenericProfile:
         self.definitions = []
         self.reader = reader
         self.textField = None
+        self.html = ""
+        self.defBody = ""
         self.__class__.instance = self
     
     def addFact(self,definition):
@@ -47,12 +49,38 @@ class GenericProfile:
         dialog.horizontalLayout_2.addWidget(self.radioButton)
         self.radioButton.setText(translate("DialogPreferences", self.displayedName, None))
         return
+
+    def getFileProfile(self,prfl):
+        return self.reader.currentFile.profiles[prfl]
+
+    def ankiIsFactValid(self, prfl, markup, index=None):
+        if markup is None:
+            return False
+
+        if self.reader.anki is None:
+            return False
+
+        profile = self.reader.preferences['profiles'].get(prfl)
+        if profile is None:
+            return False
+        fields = reader_util.formatFields(profile['fields'], markup)
+        key = self.reader.anki.getModelKey(profile['model'])
+        fp = self.getFileProfile(prfl)
+        if fp['longestMatch'] is None:
+            fp['longestMatch'] = index
+        if key is not None and key in fields and fields[key] in fp['wordsAll']:
+            if len(fields[key]) > len(fp['longestMatchKey']):
+                fp['longestMatch'] = index
+                fp['longestMatchKey'] = fields[key]
+        result = self.reader.anki.canAddNote(profile['deck'], profile['model'], fields)
+
+        return result
         
     def updateDefinitions(self,**options):
         defs = self.definitions[:]
         if options.get('trim', True):
             defs = defs[:self.reader.preferences['maxResults']]
-        html = self.buildDefinitions(defs,self.reader.ankiIsFactValid,self.reader.anki is not None)
+        html = self.buildDefinitions(defs,self.reader.anki is not None)
         html = self.fixHtml(html)
         control = self.textField
         position = control.page().mainFrame().scrollBarValue(QtCore.Qt.Vertical)
@@ -81,18 +109,20 @@ class GenericProfile:
     def buildDefFooter(self):
         return '</body></html>'
         
-    def buildDefBody(self, definition, index, existsAlready, allowOverwrite):
+    def buildDefBody(self, definition, index, allowOverwrite):
         return ''
 
     def buildEmpty(self):
         return u"""<p>No definitions to display.</p>"""
         
-    def buildDefinitions(self, definitions, query, allowOverwrite):
+    def buildDefinitions(self, definitions, allowOverwrite):
+        self.defBody = ""
         self.html = self.buildDefHeader()
 
         if len(definitions) > 0:
             for i, definition in enumerate(definitions):
-               self.html += self.buildDefBody(definition, i, query, allowOverwrite)
+               self.defBody += self.buildDefBody(definition, i, allowOverwrite)
+            self.html += self.defBody
         else:
             self.html += self.buildEmpty()
 

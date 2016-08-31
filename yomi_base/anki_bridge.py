@@ -30,6 +30,7 @@ from yomi_base.file_state import FileState
 from yomi_base.scheduler import Scheduler
 from yomi_base.deckManager import DeckManager
 from yomi_base.errorHandler import ErrorHandler
+from yomi_base.anki_server import AnkiConnect
 from yomi_base import profiles
 from anki.models import defaultModel,defaultField,defaultTemplate
 from anki.utils import ids2str, intTime
@@ -274,7 +275,7 @@ class YomichanPlugin(Yomichan):
         self.window = None
         self.anki = Anki()
         self.fileCache = dict()
-
+        self.ankiConnect = AnkiConnect(self, self.preferences)
         self.parent = None #self.anki.window()
 
         separator = QtGui.QAction(self.anki.window())
@@ -315,8 +316,9 @@ class YomichanPlugin(Yomichan):
             d = dict()
             if profile is None:
                 continue
-            for cid,value,nid in self.anki.getCards(profile["model"]): 
-                d[value] = self.anki.collection().getCard(cid)
+            for cid,value,nid in self.anki.getCards(profile["model"]):
+                if value not in d:
+                    d[value] = self.anki.collection().getCard(cid)
             allCards[p] = d
                 
         return allCards

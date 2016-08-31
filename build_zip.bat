@@ -6,6 +6,3 @@ rm yomichan_dict_european.zip
 
 rm tools.zip
 7z a tools.zip tools yomi_base/mplayer/subfont.ttf
-
-call build_zip_core.bat
-

@@ -103,8 +103,8 @@ class SentenceProfile(GenericProfile):
         
     def onLookup(self,d,lengthMatched):
         if self.dockSentence.isVisible():
-            sentence, sentenceStart = reader_util.findSentence(d.content, d.samplePosStart)
-            line, lineStart = reader_util.findLine(d.content, d.samplePosStart)
+            sentence, sentenceStart = reader_util.findSentence(d['content'], d['samplePosStart'])
+            line, lineStart = reader_util.findLine(d['content'], d['samplePosStart'])
             self.definitionType = "normal"
             self.definitions = [{
                 'text': sentence,
@@ -136,14 +136,14 @@ class SentenceProfile(GenericProfile):
         return d
 
 
-    def buildDefBody(self, definition, index, existsAlready, allowOverwrite):
+    def buildDefBody(self, definition, index, allowOverwrite):
         links = ""
-        if existsAlready is not None:
-            if existsAlready('sentence', self.markup(definition), index):
-                links += '<a href="sentence_add:{0}"><img src="qrc:///img/img/icon_add_expression.png" align="right"></a>'.format(index)
-            else:
-                if allowOverwrite:
-                    links += '<a href="sentence_overwrite:{0}"><img src="qrc:///img/img/icon_overwrite_expression.png" align="right"></a>'.format(index)
+        if self.ankiIsFactValid('sentence', self.markup(definition), index):
+            links += '<a href="sentence_add:{0}"><img src="qrc:///img/img/icon_add_expression.png" align="right"></a>'.format(index)
+        else:
+            if allowOverwrite:
+                links += '<a href="sentence_overwrite:{0}"><img src="qrc:///img/img/icon_overwrite_expression.png" align="right"></a>'.format(index)
+
         if self.definitionType == "normal":
             html = ("<b>Sentence: </b><br>" if index == 0 else "<b>Line: </b><br>") 
         else:

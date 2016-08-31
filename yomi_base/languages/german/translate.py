@@ -39,8 +39,8 @@ class Translator:
         self.dictionary = dictionary
 
     def findTerm(self, text, wildcards=False):
-        s = text.content
-        p = text.samplePosStart
+        s = text['content']
+        p = text['samplePosStart']
         p1 = max([s[:p].rfind(d) for d in delimiters]) + 1
         p2 = min([x for x in [s[p:].find(d) for d in delimiters] if x>=0]+[len(s)-1]) + p
         w = s[p1:p2]
@@ -49,10 +49,22 @@ class Translator:
         length = None
         wordType = None
         minw = len(w)-2 if len(w)>2 else 0
-        hashs = dict()
+        hashs = set()
         self.words = []
-        for i in xrange(len(w), minw, -1):
-            word = w[:i]
+        genRanges = [0]
+        def gen(w,arr):
+            start = 0
+            while len(arr)>0:
+                start = arr.pop(0)
+                for i in xrange(len(w), 0, -1):  # xrange(len(w), minw, -1):
+                    yield (start, i, len(w)-start)
+        entriesBefore = 0
+        originalWord = w
+        self.test = []
+
+        for s,i,l in gen(w,genRanges):
+            word = originalWord[s:i]
+            self.test.append((word,originalWord,s,i))
             words = [word]
             
             # Verben
@@ -78,14 +90,29 @@ class Translator:
             if word.lower()!=word:
                 words.append(word.lower())
             self.words += words
+            entriesBeforeAdd = len(results)
             for w in words:
                 for entry in self.dictionary.findTerm(w, wildcards):
-                    h = hash(frozenset(entry.items()))
+                    h = "??".join(entry.values()[:-1])
                     if h not in hashs:
-                        hashs[h] = entry
-                        results.append(entry)
-            
+                        hashs.add(h)
+                        results.append({
+                            "expression": entry['expression'],
+                            "search": entry['search'],
+                            "gender": entry['gender'],
+                            "glossary": entry['glossary'],
+                            "tags": entry['tags'],
+                            "language": "German"
+                        })
+            self.test.append((word,len(results),entriesBeforeAdd,entriesBefore,l,i,s))
+            if len(results)-entriesBeforeAdd > 0 and entriesBeforeAdd-entriesBefore == 0 and l>2:
+                genRanges.append(i+s)
+                entriesBefore = len(results)
 
+
+        self.results = results
+        results = sorted(results,
+                         key=lambda d: (len(d['search']), d['search'],-len(d['expression']),d['expression']),reverse=True)
         return results, length
 
 

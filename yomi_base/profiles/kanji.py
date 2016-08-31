@@ -3,9 +3,6 @@ from PyQt4 import QtGui
 from profile import *
 import os
 
-class Container:
-    pass
-
 class KanjiProfile(GenericProfile):
     name = "kanji"
     descriptor = "KANJI IN THIS TEXT"
@@ -67,11 +64,11 @@ class KanjiProfile(GenericProfile):
         if self.dockKanji.isVisible():
             if 'japanese' in self.reader.languages:
                 if lengthMatched == 0:
-                    self.definitions = self.reader.languages['japanese'].findCharacters(d.contentSample[0])
+                    self.definitions = self.reader.languages['japanese'].findCharacters(d['contentSample'][0])
                     if len(self.definitions) > 0:
                         lengthMatched = 1
                 else:
-                    self.definitions = self.reader.languages['japanese'].findCharacters(d.contentSample[:lengthMatched])
+                    self.definitions = self.reader.languages['japanese'].findCharacters(d['contentSample'][:lengthMatched])
                 self.updateDefinitions()
             self.reader.updateVocabDefs('kanji')
         return lengthMatched
@@ -95,9 +92,9 @@ class KanjiProfile(GenericProfile):
 ### SHUFFLE THIS TEXT ###""".format(definition['ongroup'])
                     fp.write(content.encode('utf-8'))
                     fp.close()
-            d = Container()
-            d.contentSample = definition['ongroup']
-            self.onLookup(d,len(d.contentSample))
+            d = dict()
+            d['contentSample'] = definition['ongroup']
+            self.onLookup(d,len(d['contentSample']))
             self.reader.profiles["vocabulary"].onQuery(list(definition['ongroup']))
         
     
@@ -114,9 +111,9 @@ class KanjiProfile(GenericProfile):
         'words': words
     }
 
-    def buildDefBody(self, definition, index, query, allowOverwrite):
+    def buildDefBody(self, definition, index, allowOverwrite):
         links = '<a href="kanji_copy:{0}"><img src="qrc:///img/img/icon_copy_definition.png" align="right"></a>'.format(index)
-        if (query is not None and query('kanji', definition, index)):
+        if (self.ankiIsFactValid('kanji', definition, index)):
             links += '<a href="kanji_add:{0}"><img src="qrc:///img/img/icon_add_expression.png" align="right"></a>'.format(index)
 
         readings = ', '.join([definition['kunyomi'], definition['onyomi']])

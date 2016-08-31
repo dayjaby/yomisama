@@ -4,7 +4,7 @@ class Translator:
 
 
     def findTerm(self, text, wildcards=False):
-        text = text.contentSampleFlat
+        text = text["contentSampleFlat"]
         results = []
         length = None
         for i in xrange(len(text), 0, -1):

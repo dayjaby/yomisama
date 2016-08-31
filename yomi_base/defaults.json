@@ -1,4 +1,5 @@
 {
+    "enableAnkiConnect": true,
     "bgColor": 4294967295,
     "checkForUpdates": true,
     "fgColor": 4278190080,

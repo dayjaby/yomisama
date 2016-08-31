@@ -22,6 +22,7 @@ import sqlite3
 
 class Dictionary:
     def __init__(self, filename, index=True, load=True):
+        self.filename = filename
         with open(filename) as f:
             pass
         if load:
