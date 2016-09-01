@@ -1,3 +1,20 @@
+# -*- coding: utf-8 -*-
+
+# Copyright (C) 2016  David Jablonski
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 import aqt
 import anki.decks
 from anki.consts import *
@@ -14,7 +31,7 @@ class DeckManager(anki.decks.DeckManager):
         self.dconf = col.decks.dconf
         self.changed = col.decks.changed
         self.filecache = filecache
-        
+
     def cids(self, did, children=False):
         deck = self.get(did)
         if deck["name"].split("::")[0]=="Yomichan":
@@ -22,7 +39,6 @@ class DeckManager(anki.decks.DeckManager):
         else:
             return anki.decks.DeckManager.cids(self,did,children)
 
-        
     def createDeck(self,path):
         completePath = self.col.media.dir()
         for i in path[:-1]:
@@ -38,7 +54,6 @@ class DeckManager(anki.decks.DeckManager):
             f.close()
         return fullPath
 
-        
     def id(self, name, create=True, type=anki.decks.defaultDeck):
         did = anki.decks.DeckManager.id(self,name,create,type)
         name = self.nameOrNone(did)
@@ -64,7 +79,7 @@ class DeckManager(anki.decks.DeckManager):
                         del self.filecache[name]
             if len(path) > 1 or path[0] != u'Yomichan':
                 anki.decks.DeckManager.rem(self,did,cardsToo,childrenToo)
-                
+
     def rename(self, g, name):
         path = name.split(u'::')
         gname = g['name'] # old name
@@ -99,7 +114,7 @@ class DeckManager(anki.decks.DeckManager):
             if '::' in name:
                 newParent = '::'.join(name.split('::')[:-1])
                 if self.byName(newParent)['dyn']:
-                    raise DeckRenameError(_("A filtered deck cannot have subdecks."))            
+                    raise DeckRenameError(_("A filtered deck cannot have subdecks."))
         if isYomichan and isYomichan2 and (isFile==isFile2):
             root_dst_dir = self.createDeck(path)
             root_src_dir = self.col.media.dir()

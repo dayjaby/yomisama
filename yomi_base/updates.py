@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2013  Alex Yatskov
+# Copyright (C) 2016 David Jablonski
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -60,7 +60,7 @@ class UpdateFinder(QtCore.QThread):
         updates = list()
 
         try:
-            fp = urllib2.urlopen('http://foosoft.net/projects/yomichan/dl/updates.json')
+            fp = urllib2.urlopen('http://cult-soft.de/yomisama/updates.json')
             updates = json.loads(fp.read())
             fp.close()
 
