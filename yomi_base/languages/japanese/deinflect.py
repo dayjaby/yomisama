@@ -20,6 +20,7 @@ import codecs
 import json
 import re
 
+from jcconv import *
 
 #
 # Deinflection
@@ -42,7 +43,6 @@ class Deinflection:
             for tag in self.tags:
                 if self.searchTags(tag, tags):
                     return True
-
 
     def deinflect(self, validator, rules):
         if self.validate(validator):
@@ -110,3 +110,7 @@ class Deinflector:
         node = Deinflection(term)
         if node.deinflect(validator, self.rules):
             return node.gather()
+        else:
+            node = Deinflection(kata2hira(term))
+            if node.deinflect(validator, self.rules):
+                return node.gather()

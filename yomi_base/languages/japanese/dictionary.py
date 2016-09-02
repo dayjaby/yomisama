@@ -46,7 +46,11 @@ class Dictionary:
             self.query = query
             cursor.execute(u'SELECT * FROM Terms WHERE ('+query+u') AND isWord(tags) AND glossary NOT LIKE "%(obsc)%" AND glossary NOT LIKE "%(arch)%"')
         else:
-            cursor.execute('SELECT * FROM Terms WHERE expression {0} ? OR reading=? LIMIT 100'.format('LIKE' if wildcards else '='), (word, word))
+            cursor.execute('SELECT * FROM Terms WHERE expression {0} ? OR\
+                           reading=? LIMIT 100'.format('LIKE' if
+                                                                    wildcards
+                                                                    else '='),
+                           (word, word))
 
         results = list()
         for fetch in cursor.fetchall():

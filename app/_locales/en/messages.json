@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "yomichrome",
+    "description": "The name of the application"
+  },
+  "appDescription": {
+    "message": "Yomisama support for Chrome",
+    "description": "The description of the application"
+  }
+}
