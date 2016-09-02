@@ -39,7 +39,6 @@ def decodeContent(content):
 def stripReadings(content):
     return re.sub(u'《[^》]+》', unicode(), content)
 
-    
 def findLine(content, position):
     startLine = content[0:position].rfind(u'\n')
     endLine = content.find(u'\n',position)
@@ -48,7 +47,6 @@ def findLine(content, position):
     else:
       line = content[startLine+1:endLine]
     return line, startLine+1
-    
 
 def findSentence(content, position):
     if len(content) == 0:
@@ -60,11 +58,12 @@ def findSentence(content, position):
     quoteStack = list()
 
     start = 0
+    position = min(position,len(content))
     for i in xrange(position, start, -1):
-        c = content[i]
+        c = content[i-1]
 
-        if not quoteStack and (c in terminators or c in quotesFwd):                                                                               
-            start = i + 1
+        if not quoteStack and (c in terminators or c in quotesFwd):
+            start = i
             break
 
         if quoteStack and c == quoteStack[0]:

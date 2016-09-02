@@ -1,0 +1,67 @@
+{
+  "name": "__MSG_appName__",
+  "version": "0.0.1",
+  "manifest_version": 2,
+  "description": "__MSG_appDescription__",
+  "icons": {
+    "16": "images/yomi16.png",
+    "32": "images/yomi32.png",
+    "128": "images/yomi128.png"
+  },
+  "default_locale": "en",
+  "background": {
+    "scripts": [
+      "scripts/chromereload.js",
+      "scripts/background.js"
+    ]
+  },
+  "permissions": [
+    "tabs",
+    "http://127.0.0.1/*"
+  ],
+  "options_ui": {
+    "page": "options.html",
+    "chrome_style": true
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "scripts/vendor/angular.min.js",
+        "scripts/vendor/angular-route.min.js",
+        "scripts/vendor/jquery-3.1.0.min.js",
+	"scripts/vendor/jquery.mousewheel.min.js",
+        "scripts/contentscript.js"
+      ],
+      "css": [
+        "styles/main.css"
+      ],
+      "run_at": "document_end",
+      "all_frames": false
+    }
+  ],
+  "content_security_policy": "script-src 'self'; object-src 'self'",  
+  "omnibox": {
+    "keyword": "OMNIBOX-KEYWORD"
+  },
+  "browser_action": {
+    "default_icon": {
+      "19": "images/yomi19.png",
+      "38": "images/yomi38.png"
+    },
+    "default_title": "yomichrome",
+    "default_popup": "popup.html"
+  },
+  "web_accessible_resources": [
+    "styles/main.css",
+    "images/icon_copy_definition.png",
+    "images/icon_add_expression.png",
+    "images/icon_add_reading.png",
+    "images/icon_overwrite_expression.png",
+    "images/icon_overwrite_reading.png"
+
+  ]
+}

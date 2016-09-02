@@ -378,12 +378,12 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
         return inner
             
     def onActionHomepage(self):
-        url = QtCore.QUrl('http://foosoft.net/projects/yomichan')
+        url = QtCore.QUrl('http://dayjaby.wordpress.com')
         QtGui.QDesktopServices().openUrl(url)
 
 
     def onActionFeedback(self):
-        url = QtCore.QUrl('http://foosoft.net/about')
+        url = QtCore.QUrl('http://dayjaby.wordpress.com')
         QtGui.QDesktopServices().openUrl(url)
 
 
@@ -618,6 +618,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
         key = self.anki.getModelKey(profile['model'])
         value = fields[key]
         # Put the vocabulary out of 'new' state and add it to the vocabulary list
+        self.cardByNote = (profile['model'],key,value)
         ids = self.anki.getCardsByNote(profile['model'],key,value)
         if len(ids) == 0:
             self.add = "len(ids == 0)"

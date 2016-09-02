@@ -32,7 +32,7 @@ class AnkiConnect:
 
 
     def advance(self):
-        enabled = self.preferences['enableAnkiConnect']
+        enabled = True #self.preferences['enableAnkiConnect']
 
         if self.server is None and enabled:
             self.server = AjaxServer(self.handler)
@@ -62,5 +62,5 @@ class AnkiConnect:
         self.yomisama.window.profiles[params["profile"]].onAnchorClicked(params["href"])
         htmls = dict()
         for profile in self.yomisama.window.getSortedProfiles():
-            htmls[profile.displayedName] = profile.defBody
+            htmls[profile.name] = {'body':profile.defBody,'name':profile.displayedName};
         return htmls

@@ -1,0 +1,24 @@
+span#yomisama-popup {
+    all:              initial;
+    border:           1px solid #999;
+    box-shadow:       0 0 0px rgba(0, 0, 0, .5);
+    height:           250px;
+    position:         fixed;
+    resize:           both;
+    visibility:       hidden;
+    width:            600px;
+    z-index:          2147483647;
+    background-color: #1a1a00;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+div#yomisama {
+    color: #cccc00;
+    padding: 5px;
+}
+
+div#yomisama a {
+    color: #00aaaa;
+    text-decoration: none;
+}

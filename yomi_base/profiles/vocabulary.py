@@ -25,7 +25,7 @@ from .. import preferences
 
 class VocabKeyFilter(QtCore.QObject):
     obj = None
-    
+
     def eventFilter(self, unused, event):
         obj = self.obj
         if event.type() == QtCore.QEvent.MouseButtonPress:
@@ -79,9 +79,8 @@ class VocabularyProfile(GenericProfile):
         self.actionToggleVocab.setToolTip("Toggle vocabulary")
         reader.menuView.insertAction(reader.menuView.actions()[2],self.actionToggleVocab)
         QtCore.QObject.connect(self.actionToggleVocab, QtCore.SIGNAL("toggled(bool)"), self.dockVocab.setVisible)
-
         self.dockVocab.installEventFilter(self.reader.keyFilter)
-        
+
     def updateSampleFromSelection(self):
         d = {
             "samplePosStart": 0,
@@ -89,10 +88,10 @@ class VocabularyProfile(GenericProfile):
             "content": ""
         }
         self.onLookup(d,0,sentenceAndLine=False)
-        
+
     def fixHtml(self,html,appendToHistory=True):
         if html.find(self.buildEmpty()) == -1 and appendToHistory:
-            self.history.append(html)
+            self.history.append((html,list(self.definitions),self.defBody))
         back = len(self.history)>1
         #self.currentIndex > 0
         #forward = self.currentIndex < len(self.history)-1
@@ -103,20 +102,23 @@ class VocabularyProfile(GenericProfile):
             return u"<div>{1} {2}</div><br>{0}".format(html,backHtml,forwardHtml)
         else:
             return html
-        
+
     def onVisibilityChanged(self,visible):
         self.actionToggleVocab.setChecked(self.dockVocab.isVisible())
 
-        
     def onAnchorClicked(self, url):
         command, index = url.split(':')
         if command == "jisho":
             url = QtCore.QUrl(self.reader.preferences["linkToVocab"].format(index))
             QtGui.QDesktopServices().openUrl(url)
         elif command == "vocabulary_back":
-            self.history.pop()
-            html = self.fixHtml(self.history[-1],appendToHistory=False)
-            self.textField.setHtml(html)
+            if len(self.history)>1:
+                self.history.pop()
+                html, definitions, body = self.history[-1]
+                html = self.fixHtml(html,appendToHistory=False)
+                self.textField.setHtml(html)
+                self.definitions = definitions
+                self.defBody = body
         elif command == "vocabulary_forward":
             self.textField.history().forward()
         else:
@@ -125,7 +127,7 @@ class VocabularyProfile(GenericProfile):
                 commands = command.split("_")
                 profile = commands.pop(0)
                 self.runCommand(commands,index)
-        
+
     def onLookup(self,d,lengthMatched,sentenceAndLine=True):
         if self.dockVocab.isVisible():
             lengthMatched = self.reader.findTerm(d)
@@ -141,7 +143,7 @@ class VocabularyProfile(GenericProfile):
             self.previousExpression = None
             self.reader.updateVocabDefs('vocabulary')
         return lengthMatched
-        
+
     def onQuery(self,query):
         if self.dockVocab.isVisible():
             lengthMatched = self.reader.findTerm(query,wildcards=True)
@@ -151,16 +153,15 @@ class VocabularyProfile(GenericProfile):
                 definition['filename'] = self.reader.state.filename
             self.previousExpression = None
             self.reader.updateVocabDefs('vocabulary')
-        return lengthMatched        
-        
+        return lengthMatched
+
     def onShowDialogPreferences(self,dialog):
         dialog.checkHideTranslation = QtGui.QCheckBox(dialog.tabAnki)
         dialog.checkHideTranslation.setObjectName(fromUtf8("checkHideTranslation"))
         dialog.verticalLayout_2.addWidget(dialog.checkHideTranslation)
         dialog.checkHideTranslation.setText(translate("DialogPreferences", "Hide translation, when an online dictionary entry is present", None))
         GenericProfile.onShowDialogPreferences(self,dialog)
-        
-        
+
     def runCommand(self,cmds,index):
         if index >= len(self.definitions):
             return
@@ -170,6 +171,10 @@ class VocabularyProfile(GenericProfile):
                 result = u'{expression}\t{reading}\t{glossary}\n'.format(**definition)
             else:
                 result = u'{expression}\t{glossary}\n'.format(**definition)
+            if definition.get("defs"):
+                text = self.reader.textContent.toPlainText() + "\n"
+                self.reader.textContent.setPlainText(text +
+                                                     definition.get("defs").replace(u"<br>",u"\n"))
 
             QtGui.QApplication.clipboard().setText(result)
         elif cmds[0] == "goo":
