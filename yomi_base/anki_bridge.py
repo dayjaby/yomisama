@@ -32,6 +32,7 @@ from yomi_base.deckManager import DeckManager
 from yomi_base.errorHandler import ErrorHandler
 from yomi_base.anki_server import AnkiConnect
 from yomi_base import profiles
+from yomi_base.constants import extensions
 from anki.models import defaultModel,defaultField,defaultTemplate
 from anki.utils import ids2str, intTime
 
@@ -136,18 +137,14 @@ document.getElementById("words").innerHTML = document.getElementById("words").in
 
 
     def createNote(self, deckName, modelName, fields, tags=list()):
-        self.noteCreate = "self.models().byName('{0}')".format(modelName)
         model = self.models().byName(modelName)
         if model is None:
             return None
 
-        self.noteCreate = "self.decks().byName('{0}')".format(deckName)
         deck = self.decks().byName(deckName)
         if deck is None:
             return None
-        self.noteCreate = "before create note"
         note = anki.notes.Note(self.collection(), model)
-        self.noteCreate = "after create note"
         self.note = note
         note.model()['did'] = deck['id']
         note.tags = tags
@@ -338,7 +335,7 @@ class YomichanPlugin(Yomichan):
             mediadir = self.anki.collection().media.dir()
             yomimedia = os.path.join(mediadir,rootDir)
             def processFile(file,relDir):
-              if file[-4:] == '.txt':
+              if file[-4:] in extensions['text']:
                   path = os.path.join(relDir,file)
                   fullPath = u'::'.join(unicode(path).split(os.sep))
                   if fullPath in oldCache:
@@ -421,7 +418,7 @@ def onBeforeStateChange(state, oldState, *args):
                         if fileName == os.path.basename(os.path.splitext(file)[0]) and os.path.isfile(os.path.join(dirName,file)):
                             extension = file[file.rfind("."):]
                             yomichanInstance.window.currentFile.loadedExtensions.append(extension)
-                            if extension not in [".txt",".srt",".mkv",".mp4"]:
+                            if extension not in [".srt",".mkv",".mp4"] and extension not in extensions['text']:
                                 openFile = os.path.join(dirName,file)
                                 if sys.platform == 'linux2':
                                     subprocess.call(["xdg*-open", openFile])
