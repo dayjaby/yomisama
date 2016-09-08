@@ -1,10 +1,5 @@
 'use strict';
 
-
-//$http.post('http://127.0.0.1:8766'
-
-console.log(chrome.runtime);
-
 chrome.runtime.onMessage.addListener(function (request, sender, callback) {
     const xhr = new XMLHttpRequest();
     xhr.addEventListener('loadend', function() {

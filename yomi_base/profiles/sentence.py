@@ -30,7 +30,7 @@ class SentenceProfile(GenericProfile):
     descriptor = "SENTENCES IN THIS TEXT"
     languages = ["japanese","chinese","korean"]
     sortIndex = 3
-    allowedTags = ['text','filename']
+    allowedTags = ['text','filename','translation']
 
     def __init__(self,reader):
         GenericProfile.__init__(self,reader)
@@ -101,7 +101,8 @@ class SentenceProfile(GenericProfile):
                 row = ''.join(map(unicode,tds))
                 self.definitions.append({
                     'text': row,
-                    'filename': self.reader.state.filename
+                    'filename': self.reader.state.filename,
+                    'translation': ''
                 })
             self.updateDefinitions()
             self.reader.updateVocabDefs('sentence')
@@ -123,10 +124,12 @@ class SentenceProfile(GenericProfile):
             self.definitionType = "normal"
             self.definitions = [{
                 'text': sentence,
-                'filename': self.reader.state.filename
+                'filename': self.reader.state.filename,
+                'translation': ''
             },{
                 'text': line,
-                'filename': self.reader.state.filename
+                'filename': self.reader.state.filename,
+                'translation': ''
             }]
             self.updateDefinitions()
             self.reader.updateVocabDefs('sentence')
@@ -154,18 +157,22 @@ class SentenceProfile(GenericProfile):
     def buildDefBody(self, definition, index, allowOverwrite):
         links = ""
         if self.ankiIsFactValid('sentence', self.markup(definition), index):
+            self.existsAlready[index] = False
             links += '<a href="sentence_add:{0}"><img src="qrc:///img/img/icon_add_expression.png" align="right"></a>'.format(index)
         else:
+            self.existsAlready[index] = True
+            #links += '<a href="sentence_add:{0}"><img src="qrc:///img/img/icon_add_expression.png" align="right"></a>'.format(index)
             if allowOverwrite:
                 links += '<a href="sentence_overwrite:{0}"><img src="qrc:///img/img/icon_overwrite_expression.png" align="right"></a>'.format(index)
 
-        if self.definitionType == "normal":
+        if hasattr(self,'definitionType') and self.definitionType == "normal":
             html = ("<b>Sentence: </b><br>" if index == 0 else "<b>Line: </b><br>") 
         else:
             html = ""
         html = html + u"""
-            <span class="sentence">{0}{1}<br></span>
-            <br clear="all">""".format(definition.get('text') or unicode(), links)
+            <span class="sentence">{0}{1}<br>{2}</span>
+            <br clear="all">""".format(definition.get('text') or unicode(),
+                                       links,definition.get('translation'))
         
         #html = u"""<a href='kotonoha'>[Kotonoha]</a><br>""" + html
 
