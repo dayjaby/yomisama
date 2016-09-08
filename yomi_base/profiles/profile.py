@@ -43,6 +43,7 @@ class GenericProfile:
     
     def __init__(self,reader):
         self.definitions = []
+        self.existsAlready = {}
         self.reader = reader
         self.textField = None
         self.html = ""
@@ -94,6 +95,7 @@ class GenericProfile:
         return result
         
     def updateDefinitions(self,**options):
+        self.existsAlready = {}
         defs = self.definitions[:]
         if options.get('trim', True):
             defs = defs[:self.reader.preferences['maxResults']]

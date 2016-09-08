@@ -17,10 +17,12 @@
 
 import aqt
 import anki.decks
+import anki.utils
 from anki.consts import *
 import os,shutil
 import copy
 import yomi_base.anki_bridge
+from yomi_base.constants import extensions
 
 class DeckManager(anki.decks.DeckManager):
     customDeckManager = True
@@ -32,24 +34,40 @@ class DeckManager(anki.decks.DeckManager):
         self.changed = col.decks.changed
         self.filecache = filecache
 
-    def cids(self, did, children=False):
+    def isYomiDeck(self, did):
+        return self.get(did)["name"].split("::")[0]=="Yomichan"
+
+    def get_yomi_cids(self, did):
         deck = self.get(did)
-        if deck["name"].split("::")[0]=="Yomichan":
-            return self.col.db.list("select c.id from cards c join notes n on n.id = c.nid where " + yomi_base.anki_bridge.searchYomichanDeck(deck["name"]))
+        return self.col.db.list("select c.id from cards c join notes n on n.id = c.nid where " + yomi_base.anki_bridge.searchYomichanDeck(deck["name"]))
+
+    def cids(self, did, children=False):
+        if self.isYomiDeck(did):
+            return self.get_yomi_cids(did)
         else:
             return anki.decks.DeckManager.cids(self,did,children)
+
+    def get_card_ids(self, did, children=False, include_from_dynamic=False):
+        if self.isYomiDeck(did):
+            return self.get_yomi_cids(did)
+        else:
+            deck_ids = [did] + ([deck_id for _, deck_id in self.children(did)] if children else [])
+            request = "select id from cards where did in {}" + (" or odid in {}" if
+                                                            include_from_dynamic else "")
+            parameters = (anki.utils.ids2str(deck_ids),) + ((anki.utils.ids2str(deck_ids),) if include_from_dynamic else tuple())
+            return self.col.db.list(request.format(*parameters))
 
     def createDeck(self,path):
         completePath = self.col.media.dir()
         for i in path[:-1]:
             completePath = os.path.join(completePath,i)
         fullPath = os.path.join(completePath,path[-1])
-        if path[-1].endswith(".txt"):
+        if path[-1].endswith(extensions['text']):
             if not os.path.isdir(completePath):
                 os.makedirs(completePath)
         elif not os.path.isdir(fullPath):
             os.makedirs(fullPath)
-        if path[-1].endswith(".txt") and not os.path.isfile(fullPath):
+        if path[-1].endswith(extensions['text']) and not os.path.isfile(fullPath):
             f = open(fullPath,'w')
             f.close()
         return fullPath
@@ -86,8 +104,8 @@ class DeckManager(anki.decks.DeckManager):
         path2 = gname.split(u'::')
         isYomichan = len(path) > 1 and path[0] == u'Yomichan'
         isYomichan2 = len(path2) > 1 and path2[0] == u'Yomichan'
-        isFile = name.endswith('.txt')
-        isFile2 = gname.endswith('.txt')
+        isFile = name.endswith(extensions['text'])
+        isFile2 = gname.endswith(extensions['text'])
         if isYomichan == isYomichan2 and isFile==isFile2:
             anki.decks.DeckManager.rename(self,g,name)
         elif isYomichan2 and not isYomichan:
@@ -120,7 +138,7 @@ class DeckManager(anki.decks.DeckManager):
             root_src_dir = self.col.media.dir()
             for i in path2:
                 root_src_dir = os.path.join(root_src_dir,i)
-            if root_src_dir.endswith(".txt"):
+            if root_src_dir.endswith(extensions['text']):
                 shutil.move(root_src_dir, root_dst_dir)
             else:
                 for src_dir, dirs, files in os.walk(root_src_dir):
@@ -136,7 +154,7 @@ class DeckManager(anki.decks.DeckManager):
             if gname in self.filecache:
                 self.filecache[name] = self.filecache[gname]
                 del self.filecache[gname]
-            elif not gname.endswith('.txt'):
+            elif not gname.endswith(extensions['text']):
                 for file in self.filecache:
                     if file.startswith(gname+'::'):
                         nname = file.replace(gname+'::',name+'::',1)

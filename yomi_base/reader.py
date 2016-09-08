@@ -29,6 +29,7 @@ import updates
 import sys
 from yomi_base import profiles
 from yomi_base.file_state import FileState
+from yomi_base.constants import extensions
 
 
 class Container(object):
@@ -268,13 +269,19 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
     def resizeEvent(self, event):
         self.preferences['windowSize'] = event.size().width(), event.size().height()
 
+    def getFileFilter(self):
+        return ';;'.join(
+            ['Text files (' + 
+             ' '.join(map(lambda x:'*'+x,extensions['text'])) +')',
+             'All files (*.*)'])
+
 
     def onActionOpen(self):
         filename = QtGui.QFileDialog.getOpenFileName(
             parent=self,
             caption='Select a file to open',
             directory=self.state.filename,
-            filter='Text files (*.txt);;All files (*.*)'
+                filter=self.getFileFilter()
         )
         if filename:
             self.openFile(filename)
@@ -284,7 +291,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
             parent=self,
             caption='Select a file to save',
             directory=self.state.filename,
-            filter='Text files (*.txt);;All files (*.*)'
+            filter=self.getFileFilter()
         )
         if filename:
             self.saveFile(filename)
@@ -305,7 +312,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
         filename = QtGui.QFileDialog.getOpenFileName(
             parent=self,
             caption='Select a word list file to import',
-            filter='Text files (*.txt);;All files (*.*)'
+            filter=self.getFileFilter()
         )
         if filename:
             words = reader_util.extractWordList(filename)
@@ -649,7 +656,8 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
     def updateSampleMouseEvent(self, event):
         cursor = self.textContent.cursorForPosition(event.pos())
         self.state.scanPosition = cursor.position()
-        if event.buttons() & QtCore.Qt.MidButton or event.modifiers() & QtCore.Qt.ShiftModifier:
+        if event.buttons() & QtCore.Qt.MidButton or event.modifiers() &\
+        QtCore.Qt.ShiftModifier or event.buttons() & QtCore.Qt.XButton1:
             self.updateSampleFromPosition()
 
     def createAlias(self):

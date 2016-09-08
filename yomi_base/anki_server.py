@@ -64,3 +64,11 @@ class AnkiConnect:
         for profile in self.yomisama.window.getSortedProfiles():
             htmls[profile.name] = {'body':profile.defBody,'name':profile.displayedName};
         return htmls
+
+    def api_set(self,params):
+        self.params = params
+        profile = self.yomisama.window.profiles[params["profile"]]
+        profile.definitions = params["definitions"]
+        profile.definitionType = 'list'
+        profile.updateDefinitions()
+        return profile.existsAlready
