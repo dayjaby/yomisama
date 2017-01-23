@@ -1,20 +1,5 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2016 David Jablonski
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 from PyQt4 import QtCore, QtGui
 from yomi_base import reader_util
 
@@ -40,7 +25,7 @@ class GenericProfile:
     languages = []
     sortIndex = 0
     instance = None
-    
+
     def __init__(self,reader):
         self.definitions = []
         self.existsAlready = {}
@@ -49,17 +34,16 @@ class GenericProfile:
         self.html = ""
         self.defBody = ""
         self.__class__.instance = self
-    
+
     def addFact(self,definition):
         self.reader.ankiAddFact(self.name,self.markup(definition))
 
     def overwriteFact(self,definition):
         self.reader.ankiOverwriteFact(self.name,self.markup(definition))
 
-        
     def onLookup(self,content,lengthMatched):
         return lengthMatched
-        
+
     def onShowDialogPreferences(self,dialog):
         self.radioButton = QtGui.QRadioButton(dialog.tabAnki)
         self.radioButton.setChecked(True)
@@ -93,7 +77,7 @@ class GenericProfile:
         result = self.reader.anki.canAddNote(profile['deck'], profile['model'], fields)
 
         return result
-        
+
     def updateDefinitions(self,**options):
         self.existsAlready = {}
         defs = self.definitions[:]
@@ -125,15 +109,16 @@ class GenericProfile:
             span.online {{ font-size: 15pt; font-family:Arial; }}
             span.online ol {{ list-style-type: none; }}
             </style></head><body>""".format(toolTipBg, toolTipFg)
+
     def buildDefFooter(self):
         return '</body></html>'
-        
+
     def buildDefBody(self, definition, index, allowOverwrite):
         return ''
 
     def buildEmpty(self):
         return u"""<p>No definitions to display.</p>"""
-        
+
     def buildDefinitions(self, definitions, allowOverwrite):
         self.defBody = ""
         self.html = self.buildDefHeader()
@@ -147,9 +132,9 @@ class GenericProfile:
 
         self.html = self.html + self.buildDefFooter()
         return self.html
-        
+
     def afterFileLoaded(self):
         pass
-        
+
     def close(self):
         pass

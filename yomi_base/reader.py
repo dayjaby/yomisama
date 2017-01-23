@@ -1,27 +1,12 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2016 David Jablonski
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
 from PyQt4 import QtGui, QtCore
 from anki.utils import ids2str, intTime
 import about
 import constants
 import gen.reader_ui
 import os
+import io
 import aqt
 import preferences
 import reader_util
@@ -473,22 +458,25 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
             self.textContent.setTextCursor(cursor)
             self.textContent.centerCursor()
 
-        self.setWindowTitle(u'Yomichan - {0} ({1})'.format(os.path.basename(filename), self.currentFile.encoding))
+        self.setWindowTitle(u'Yomisama - {0} ({1})'.format(os.path.basename(filename), self.currentFile.encoding))
         self.setStatus(u'Loaded file {0}'.format(filename))
 
     def saveFile(self, filename):
         try:
             filename = unicode(filename)
-            with open(filename,'w') as fp:
-                content = self.textContent.toPlainText()
-                if len(content)>0 and content[-1] != u'\n':
-                    content += u'\n'
-                content+= self.currentFile.getAliasList()
-                content+= self.currentFile.getExportVocabularyList('vocabulary') + u'\n'
-                content+= self.currentFile.getExportVocabularyList('sentence') + u'\n'
-                content+= self.currentFile.getExportVocabularyList('movie') + u'\n'
-                content+= self.currentFile.getExportVocabularyList('kanji')
-                fp.write(content.encode('utf-8'))
+            with io.open(filename,'w',encoding='utf-8') as fp:
+                if filename.endswith('.json'):
+                    content = self.currentFile.getExportJSON(self.textContent.toPlainText())
+                else:
+                    content = self.textContent.toPlainText()
+                    if len(content)>0 and content[-1] != u'\n':
+                        content += u'\n'
+                    content+= self.currentFile.getAliasList()
+                    content+= self.currentFile.getExportVocabularyList('vocabulary') + u'\n'
+                    content+= self.currentFile.getExportVocabularyList('sentence') + u'\n'
+                    content+= self.currentFile.getExportVocabularyList('movie') + u'\n'
+                    content+= self.currentFile.getExportVocabularyList('kanji')
+                fp.write(content)
                 fp.close()
         except IOError:
             self.setStatus(u'Failed to save file {0}'.format(filename))
@@ -498,13 +486,13 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
         self.currentFile.filename = filename
         self.updateRecentFile()
         self.updateRecentFiles()
-        self.setWindowTitle(u'Yomichan - {0} ({1})'.format(os.path.basename(filename), 'utf-8'))
+        self.setWindowTitle(u'Yomisama - {0} ({1})'.format(os.path.basename(filename), 'utf-8'))
 
     def closeFile(self):
         if self.preferences['rememberTextContent']:
             self.preferences['textContent'] = unicode(self.textContent.toPlainText())
 
-        self.setWindowTitle('Yomichan')
+        self.setWindowTitle('Yomisama')
         self.textContent.setPlainText(unicode())
         self.updateRecentFile(False)
         self.state = self.State()
@@ -520,7 +508,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
             if wrap:
                 self.findText(text)
             else:
-                QtGui.QMessageBox.information(self, 'Yomichan', 'Search text not found')
+                QtGui.QMessageBox.information(self, 'Yomisama', 'Search text not found')
         else:
             self.state.searchPosition = index + len(text)
             cursor = self.textContent.textCursor()

@@ -1,20 +1,5 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2016 David Jablonski
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 from aqt.webview import AnkiWebView
 from PyQt4 import QtGui
 from profile import *
@@ -34,7 +19,7 @@ class SentenceProfile(GenericProfile):
 
     def __init__(self,reader):
         GenericProfile.__init__(self,reader)
-        
+
         self.dockSentence = QtGui.QDockWidget(reader)
         self.dockSentence.setObjectName(fromUtf8("dockSentence"))
         self.dockWidgetContents = QtGui.QWidget()
@@ -63,7 +48,7 @@ class SentenceProfile(GenericProfile):
         self.actionToggleSentence.setToolTip("Toggle Sentence")
         reader.menuView.insertAction(reader.menuView.actions()[2],self.actionToggleSentence)
         QtCore.QObject.connect(self.actionToggleSentence, QtCore.SIGNAL("toggled(bool)"), self.dockSentence.setVisible)
-        
+
     def onAnchorClicked(self, url):
         if url == "kotonoha":
             prefix = "http://www.kotonoha.gr.jp"
@@ -87,7 +72,6 @@ class SentenceProfile(GenericProfile):
             ]
             data = urllib.urlencode(data)
             self.data = data
-            
             page = urllib2.urlopen(
               urllib2.Request(url=link,data=data,
               headers={'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11'})).read()
@@ -116,7 +100,6 @@ class SentenceProfile(GenericProfile):
     def onVisibilityChanged(self,visible):
         self.actionToggleSentence.setChecked(self.dockSentence.isVisible())
 
-        
     def onLookup(self,d,lengthMatched):
         if self.dockSentence.isVisible():
             sentence, sentenceStart = reader_util.findSentence(d['content'], d['samplePosStart'])
@@ -135,10 +118,9 @@ class SentenceProfile(GenericProfile):
             self.reader.updateVocabDefs('sentence')
         return lengthMatched
 
-        
     def onShowDialogPreferences(self,dialog):
         GenericProfile.onShowDialogPreferences(self,dialog)
-        
+
     def runCommand(self,cmds,index):
         if index >= len(self.definitions):
             return
@@ -147,7 +129,7 @@ class SentenceProfile(GenericProfile):
             self.addFact(definition)
         elif cmds[0] == "overwrite":
             self.overwriteFact(definition)
-            
+
     def markup(self,definition):
         d = dict(definition)
         d['summary'] = d['text']
@@ -166,14 +148,13 @@ class SentenceProfile(GenericProfile):
                 links += '<a href="sentence_overwrite:{0}"><img src="qrc:///img/img/icon_overwrite_expression.png" align="right"></a>'.format(index)
 
         if hasattr(self,'definitionType') and self.definitionType == "normal":
-            html = ("<b>Sentence: </b><br>" if index == 0 else "<b>Line: </b><br>") 
+            html = ("<b>Sentence: </b><br>" if index == 0 else "<b>Line</b><br>")
         else:
             html = ""
         html = html + u"""
             <span class="sentence">{0}{1}<br>{2}</span>
             <br clear="all">""".format(definition.get('text') or unicode(),
                                        links,definition.get('translation'))
-        
         #html = u"""<a href='kotonoha'>[Kotonoha]</a><br>""" + html
 
         return html

@@ -44,7 +44,7 @@ class VocabularyProfile(GenericProfile):
     descriptor = "VOCABULARY IN THIS TEXT (EXPORT)"
     languages = ["japanese","chinese","korean"]
     sortIndex = 1
-    allowedTags = ['expression', 'kanji', 'hanja', 'reading', 'glossary', 'sentence','line','filename','summary','traditional','language','goo','defs','refs']
+    allowedTags = ['expression', 'term', 'source', 'kanji', 'hanja', 'reading', 'glossary', 'sentence','line','filename','summary','traditional','language','goo','defs','refs']
 
     def __init__(self,reader):
         GenericProfile.__init__(self,reader)
@@ -210,14 +210,11 @@ class VocabularyProfile(GenericProfile):
                 definition['summary'] = definition['reading']
                 definition['expression'] = definition['reading']
                 definition['reading'] = unicode()
-                
             if cmds[0] == "add":
                 self.addFact(definition)
             elif cmds[0] == "overwrite":
                 self.overwriteFact(definition)
-        
-        
-    
+
     def markup(self, definition):
         if definition.get('reading'):
             summary = u'{expression}[{reading}]'.format(**definition)
@@ -238,6 +235,8 @@ class VocabularyProfile(GenericProfile):
             'line': definition.get('line') or unicode(),
             'filename': definition.get('filename') or unicode(),
             'goo': definition.get('goo') or unicode(),
+            'term': definition.get('term') or unicode(),
+            'source': definition.get('source') or unicode(),
             'summary': summary
         }
 
@@ -256,7 +255,7 @@ class VocabularyProfile(GenericProfile):
         if definition.get('rules'):
             rules = ' &lt; '.join(definition['rules'])
             rules = '<span class="rules">({0})<br></span>'.format(rules)
-            
+
         gender = unicode()
         if definition.get('gender'):
             gender = '<span class="gender">{0}<br></span>'.format(definition['gender'])

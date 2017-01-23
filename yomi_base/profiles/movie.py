@@ -1,20 +1,5 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2016 David Jablonski
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 from aqt.webview import AnkiWebView
 from PyQt4 import QtGui,QtCore
 from profile import *
@@ -56,7 +41,7 @@ devnull = file(os.devnull,"w")
 
 class MPlayerKeyFilter(QtCore.QObject):
     profile = None
-    
+
     def eventFilter(self, unused, event):
         mp = self.profile.mplayer
         if event.type() != QtCore.QEvent.KeyPress or mp is None:
@@ -75,8 +60,6 @@ class MPlayerKeyFilter(QtCore.QObject):
             srt = self.profile.srt[self.profile.srtIndex]
             start = srt.start.hours*3600+srt.start.minutes*60+srt.start.seconds+srt.start.milliseconds/1000.00
             mp.stdin.write("seek "+str(start)+" 2\n")
-        
-            
         return True
 
 
@@ -106,20 +89,20 @@ class MovieProfile(GenericProfile):
         self.keyFilter.profile = self
         self.reader.installEventFilter(self.keyFilter)
         self.createNoteQueue = Queue.Queue()
-        
+
         self.fixTimings = QtGui.QPushButton(self.reader.dockWidgetContents_2)
         self.fixTimings.setObjectName(fromUtf8("fixTimings"))
         self.fixTimings.clicked.connect(self.onFixTimings)
         self.fixTimings.setText(translate("MainWindowReader", "Fix timings", None))
         self.reader.verticalLayout_5.addWidget(self.fixTimings)
-        
+
         self.timer = QtCore.QTimer(self.reader)
         self.timer.timeout.connect(self._updateSubtitle)
         self.timer.start(500)
 
 
         self.paused = False
-    
+
     def onFixTimings(self):
         self.loadSubtitles()
         indices = []
@@ -138,13 +121,12 @@ class MovieProfile(GenericProfile):
                         indices.append(i.index-1)
         for index in indices:
             self.createNote(index=index,showNoteAdded=False)
-             
-            
+
     def close(self):
         self.mplayer = None
         if self.thread:
             self.thread.stopEvent.set()
-            
+
     def openMovie(self):
         if self.canPlay:
             if self.mplayer:
@@ -158,7 +140,7 @@ class MovieProfile(GenericProfile):
                     "-utf8",
                     "-vo","directx:noaccel",
                     self.reader.currentFile.name+self.videoFormat],
-                startupinfo=si, 
+                startupinfo=si,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=devnull,
@@ -174,20 +156,18 @@ class MovieProfile(GenericProfile):
             self.consumer.stopEvent = threading.Event()
             self.consumer.start()
 
-            
     def onLookup(self,d,lengthMatched):
         return lengthMatched
-        
-        
+
     def runCommand(self,cmd,definition):
         pass
-    
+
     def markup(self, definition):
         return definition
 
     def updateDefinitions(self,**options):
         pass
-        
+
     def _updateSubtitle(self):
         if self.mplayer is not None:
             try:
@@ -203,8 +183,7 @@ class MovieProfile(GenericProfile):
                     match2 = streamPosPattern.match(line)
                     if match2:
                         self.repeatSubtitle()
-                    
-        
+
     def afterFileLoaded(self):
         if ".mkv" in self.reader.currentFile.loadedExtensions:
             self.videoFormat = ".mkv"
@@ -212,7 +191,7 @@ class MovieProfile(GenericProfile):
             self.videoFormat = ".mp4"
         else:
             self.videoFormat = None
-            
+
         if self.videoFormat is not None:
             self.canPlay = True
             self.openMovie()
@@ -230,7 +209,7 @@ class MovieProfile(GenericProfile):
             entireText = "\n".join([i.text for i in self.srt])
             #if self.reader.textContent.toPlainText() == "":
             self.reader.textContent.setPlainText(entireText)
-                
+
     def pause(self,value=None):
         if self.mplayer:
             if value is None:
@@ -238,7 +217,7 @@ class MovieProfile(GenericProfile):
             if value != self.paused:
                 self.mplayer.stdin.write("pause\n")
             self.paused = value
-        
+
     def createNote(self,timestamp=None,index=None,showNoteAdded=True):
         nosub = False
         if self.srt is None:
@@ -295,7 +274,6 @@ class MovieProfile(GenericProfile):
             outMp4],
             startupinfo=si,stdout=log,stderr=log)
 
-            
         self.definition = {
             'summary': self.subtitle,
             'start': str(self.start),
@@ -315,6 +293,6 @@ class MovieProfile(GenericProfile):
             self.overwriteFact(self.definition)
         if showNoteAdded:
             self.mplayer.stdin.write("pausing_keep_force osd_show_text 'Note added' 500")
-    
+
     def repeatSubtitle(self):
         self.mplayer.stdin.write("seek "+str(self.start-1)+" 2\n")

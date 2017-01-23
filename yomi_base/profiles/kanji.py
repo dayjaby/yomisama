@@ -1,20 +1,5 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2016 David Jablonski
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 from aqt.webview import AnkiWebView
 from PyQt4 import QtGui
 from profile import *
@@ -30,7 +15,7 @@ class KanjiProfile(GenericProfile):
 
     def __init__(self,reader):
         GenericProfile.__init__(self,reader)
-        
+
         self.dockKanji = QtGui.QDockWidget(reader)
         self.dockKanji.setObjectName(fromUtf8("dockKanji"))
         self.dockWidgetContents = QtGui.QWidget()
@@ -64,7 +49,6 @@ class KanjiProfile(GenericProfile):
     def onVisibilityChanged(self,visible):
         self.actionToggleKanji.setChecked(self.dockKanji.isVisible())
 
-        
     def onAnchorClicked(self, url):
         command, index = url.split(':')
         if command == "jisho":
@@ -76,7 +60,7 @@ class KanjiProfile(GenericProfile):
             commands = command.split("_")
             profile = commands.pop(0)
             self.runCommand(commands,self.definitions[index])
-        
+
     def onLookup(self,d,lengthMatched):
         if self.dockKanji.isVisible():
             if 'japanese' in self.reader.languages:
@@ -89,11 +73,10 @@ class KanjiProfile(GenericProfile):
                 self.updateDefinitions()
             self.reader.updateVocabDefs('kanji')
         return lengthMatched
-        
+
     def onShowDialogPreferences(self,dialog):
         GenericProfile.onShowDialogPreferences(self,dialog)
 
-        
     def runCommand(self,cmd,definition):
         if cmd[0] == "copy":
             QtGui.QApplication.clipboard().setText(u'{character}\t{kunyomi}\t{onyomi}\t{glossary}'.format(**definition))
@@ -113,8 +96,7 @@ class KanjiProfile(GenericProfile):
             d['contentSample'] = definition['ongroup']
             self.onLookup(d,len(d['contentSample']))
             self.reader.profiles["vocabulary"].onQuery(list(definition['ongroup']))
-        
-    
+
     def markup(self, definition):
         allCards = self.reader.plugin.fetchAllCards()
         words = u",".join([x for x in allCards["vocabulary"].keys() if definition['character'] in x])

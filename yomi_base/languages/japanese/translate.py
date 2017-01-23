@@ -1,20 +1,5 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2016 David Jablonski
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 import operator
 import util
 
@@ -28,20 +13,19 @@ class Translator:
     def findTerm(self, text, wildcards=False):
         groups = dict()
         if wildcards and isinstance(text,list):
-            self.processTerm(groups,u"".join(text),root=text,wildcards=True)
+            self.processTerm(groups,u"".join(text),u"".join(text),root=text,wildcards=True)
         else:
             text = text["contentSampleFlat"]
             text = util.sanitize(text, wildcards=wildcards)
 
-                        
             for i in xrange(len(text), 0, -1):
                 term = text[:i]
                 deinflections = self.deinflector.deinflect(term, self.validator)
                 if deinflections is None:
-                    self.processTerm(groups, term, wildcards=wildcards)
+                    self.processTerm(groups, term, term, wildcards=wildcards)
                 else:
                     for deinflection in deinflections:
-                        self.processTerm(groups, **deinflection)
+                        self.processTerm(groups, term, **deinflection)
 
         results = map(self.formatResult, groups.items())
         results = filter(operator.truth, results)
@@ -69,17 +53,17 @@ class Translator:
         return results
 
 
-    def processTerm(self, groups, source, rules=list(), root=str(), wildcards=False):
+    def processTerm(self, groups, term, source, rules=list(), root=str(), wildcards=False):
         root = root or source
 
         for entry in self.dictionary.findTerm(root, wildcards):
             key = entry['expression'], entry['reading'], entry['glossary']
             if key not in groups:
-                groups[key] = entry['defs'], entry['refs'], entry['tags'], source, rules
+                groups[key] = term, entry['defs'], entry['refs'], entry['tags'], source, rules
 
 
     def formatResult(self, group):
-        (expression, reading, glossary), (defs, refs, tags, source, rules) = group
+        (expression, reading, glossary), (term, defs, refs, tags, source, rules) = group
         return {
             'defs': defs,
             'refs': refs,
@@ -88,6 +72,7 @@ class Translator:
             'glossary': glossary,
             'rules': rules,
             'source': source,
+            'term': term,
             'tags': tags,
             'language': u'Japanese'
         }

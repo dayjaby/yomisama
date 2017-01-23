@@ -1,4 +1,5 @@
 *.pyc
+*.pem
 *.swp
 yomichan.zip
 yomichan_dicts.zip

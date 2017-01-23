@@ -1,25 +1,10 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2016  David Jablonski
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 import reader_util
 import time
 import os
 import re
-
+import json
 
 class FileState:
     def __init__(self,fn,stripReadings,languages=[],profiles={}):
@@ -55,13 +40,13 @@ class FileState:
             self.name = os.path.splitext(self.filename)[0]
             self.basename = os.path.basename(self.name)
             self.load()
-    
+
     def count(self,name):
         cnt = 0
         for k,profile in self.profiles.items():
             cnt += len(profile[name])
         return cnt
-    
+
     def load(self):
         with open(self.filename) as fp:
             self.content = fp.read()
@@ -69,10 +54,33 @@ class FileState:
         self.content, self.encoding = reader_util.decodeContent(self.content)
         if self.stripReadings:
             self.content = reader_util.stripReadings(self.content)
-    
 
     def resetTimer(self):
         self.timerStarted = time.time()
+
+    def getExportJSON(self,txt):
+        def access(x,y):
+            if y not in x or x[y] is None:
+                return u''
+            else:
+                return x[y]
+
+        data = dict()
+        data['text'] = txt
+        data['profiles'] = dict()
+        for p in ['vocabulary','sentence','movie','kanji']:
+            profile = self.profiles[p]
+            allowedTags = profile["allowedTags"][:]
+            if 'filename' in allowedTags:
+                allowedTags.remove('filename')
+            profileData = dict()
+            for x in profile['wordsAll'].keys():
+                wordData = dict()
+                for y in allowedTags:
+                    wordData[y] = access(profile['wordsMarkup'][x],y)
+                profileData[x] = wordData
+            data['profiles'][p] = profileData
+        return unicode(json.dumps(data,sort_keys=True,indent=4,ensure_ascii=False))
 
     def getExportVocabularyList(self,profile):
         profile = self.profiles[profile]
@@ -86,31 +94,30 @@ class FileState:
         if 'filename' in allowedTags:
             allowedTags.remove('filename')
         vocabularyDefinitions = [self.sep.join([x.replace(u'\n',self.lineBreak).replace(u"\r","")]+([access(profile['wordsMarkup'][x],y).replace(u'\n',self.lineBreak).replace(u"\r","") for y in allowedTags])) for x in profile['wordsAll'].keys()]
-        return u'### ' + profile["descriptor"] + ' ###\n'+ self.sep.join(allowedTags) +(u'\n' if len(vocabularyDefinitions)>0 else '')+ u'\n'.join(vocabularyDefinitions)+u'\n'.join(profile['wordsNotFound']) 
-    
+        return u'### ' + profile["descriptor"] + ' ###\n'+ self.sep.join(allowedTags) +(u'\n' if len(vocabularyDefinitions)>0 else '')+ u'\n'.join(vocabularyDefinitions)+u'\n'.join(profile['wordsNotFound'])
+
     def getAliasList(self):
         if not self.alias.items():
             return u''
         else:
             return u'### ALIAS ###\n' + u'\n'.join([eng + self.sep + jpn for eng,jpn in self.alias.items()]) + u'\n'
-    
+
     def overwriteVocabulary(self,profile,value,card):
         profile = self.profiles[profile]
         profile['wordsAll'][value] = card
         if value in profile['wordsBad']:
             profile['wordsBad'][value] = card
-    
-    
+
     def addVocabulary(self,profile,value,card,addToBadListToo = True):
         profile = self.profiles[profile]
         profile['wordsAll'][value] = card
         if addToBadListToo:
-            profile['wordsBad'][value] = card             
-    
+            profile['wordsBad'][value] = card
+
     def addMarkup(self,profile,value,markup):
         profile = self.profiles[profile]
         profile['wordsMarkup'][value] = markup
-        
+
     def findVocabulary(self,sched,allCards,needContent=True):
         lines = self.content.splitlines()
         state = "text"
@@ -238,7 +245,7 @@ class FileState:
             if not regexText:
                 filteredLines.append(u'### SHUFFLE THIS TEXT ###')
         self.content = u'\n'.join(filteredLines) + u'\n'
-        
+
     def onLearnVocabularyList(self,sched):
         self.correct = 0
         self.wrong = 0
