@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from pattern.text.de import conjugate, singularize, pluralize, predicative, attributive, MALE, FEMALE, NEUTRAL, SUBJECT, OBJECT, INDIRECT, PROPERTY
+from ..pattern.text.de import conjugate, singularize, pluralize, predicative, attributive, MALE, FEMALE, NEUTRAL, SUBJECT, OBJECT, INDIRECT, PROPERTY
 
 
 delimiters = [";",","," ","!","?","\"","'",".",":"]
@@ -58,7 +58,7 @@ class Translator:
             start = 0
             while len(arr)>0:
                 start = arr.pop(0)
-                for i in xrange(len(w), 0, -1):  # xrange(len(w), minw, -1):
+                for i in range(len(w), 0, -1):  # xrange(len(w), minw, -1):
                     yield (start, i, len(w)-start)
         entriesBefore = 0
         originalWord = w

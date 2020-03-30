@@ -2,100 +2,89 @@
 
 # Form implementation generated from reading ui file 'ui/about.ui'
 #
-# Created by: PyQt4 UI code generator 4.11.4
+# Created by: PyQt5 UI code generator 5.13.2
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt4 import QtCore, QtGui
 
-try:
-    _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-    def _fromUtf8(s):
-        return s
+from PyQt5 import QtCore, QtGui, QtWidgets
 
-try:
-    _encoding = QtGui.QApplication.UnicodeUTF8
-    def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig, _encoding)
-except AttributeError:
-    def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig)
 
 class Ui_DialogAbout(object):
     def setupUi(self, DialogAbout):
-        DialogAbout.setObjectName(_fromUtf8("DialogAbout"))
+        DialogAbout.setObjectName("DialogAbout")
         DialogAbout.resize(500, 400)
-        self.verticalLayout_2 = QtGui.QVBoxLayout(DialogAbout)
-        self.verticalLayout_2.setObjectName(_fromUtf8("verticalLayout_2"))
-        self.horizontalLayout = QtGui.QHBoxLayout()
-        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
-        self.label = QtGui.QLabel(DialogAbout)
-        self.label.setText(_fromUtf8(""))
-        self.label.setPixmap(QtGui.QPixmap(_fromUtf8(":/img/img/icon_logo_64.png")))
-        self.label.setObjectName(_fromUtf8("label"))
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(DialogAbout)
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.label = QtWidgets.QLabel(DialogAbout)
+        self.label.setText("")
+        self.label.setPixmap(QtGui.QPixmap(":/img/img/icon_logo_64.png"))
+        self.label.setObjectName("label")
         self.horizontalLayout.addWidget(self.label)
-        self.verticalLayout = QtGui.QVBoxLayout()
-        self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
-        self.labelVersion = QtGui.QLabel(DialogAbout)
-        self.labelVersion.setObjectName(_fromUtf8("labelVersion"))
+        self.verticalLayout = QtWidgets.QVBoxLayout()
+        self.verticalLayout.setObjectName("verticalLayout")
+        self.labelVersion = QtWidgets.QLabel(DialogAbout)
+        self.labelVersion.setObjectName("labelVersion")
         self.verticalLayout.addWidget(self.labelVersion)
-        self.label_3 = QtGui.QLabel(DialogAbout)
-        self.label_3.setObjectName(_fromUtf8("label_3"))
+        self.label_3 = QtWidgets.QLabel(DialogAbout)
+        self.label_3.setObjectName("label_3")
         self.verticalLayout.addWidget(self.label_3)
-        self.label_4 = QtGui.QLabel(DialogAbout)
+        self.label_4 = QtWidgets.QLabel(DialogAbout)
         self.label_4.setOpenExternalLinks(True)
-        self.label_4.setObjectName(_fromUtf8("label_4"))
+        self.label_4.setObjectName("label_4")
         self.verticalLayout.addWidget(self.label_4)
         self.horizontalLayout.addLayout(self.verticalLayout)
-        spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
         self.verticalLayout_2.addLayout(self.horizontalLayout)
-        self.line = QtGui.QFrame(DialogAbout)
-        self.line.setFrameShape(QtGui.QFrame.HLine)
-        self.line.setFrameShadow(QtGui.QFrame.Sunken)
-        self.line.setObjectName(_fromUtf8("line"))
+        self.line = QtWidgets.QFrame(DialogAbout)
+        self.line.setFrameShape(QtWidgets.QFrame.HLine)
+        self.line.setFrameShadow(QtWidgets.QFrame.Sunken)
+        self.line.setObjectName("line")
         self.verticalLayout_2.addWidget(self.line)
-        self.label_6 = QtGui.QLabel(DialogAbout)
+        self.label_6 = QtWidgets.QLabel(DialogAbout)
         self.label_6.setWordWrap(True)
         self.label_6.setOpenExternalLinks(True)
-        self.label_6.setObjectName(_fromUtf8("label_6"))
+        self.label_6.setObjectName("label_6")
         self.verticalLayout_2.addWidget(self.label_6)
-        self.label_7 = QtGui.QLabel(DialogAbout)
+        self.label_7 = QtWidgets.QLabel(DialogAbout)
         self.label_7.setWordWrap(True)
         self.label_7.setOpenExternalLinks(True)
-        self.label_7.setObjectName(_fromUtf8("label_7"))
+        self.label_7.setObjectName("label_7")
         self.verticalLayout_2.addWidget(self.label_7)
-        self.label_5 = QtGui.QLabel(DialogAbout)
+        self.label_5 = QtWidgets.QLabel(DialogAbout)
         self.label_5.setWordWrap(True)
         self.label_5.setOpenExternalLinks(True)
-        self.label_5.setObjectName(_fromUtf8("label_5"))
+        self.label_5.setObjectName("label_5")
         self.verticalLayout_2.addWidget(self.label_5)
-        self.plainTextEdit = QtGui.QPlainTextEdit(DialogAbout)
+        self.plainTextEdit = QtWidgets.QPlainTextEdit(DialogAbout)
         self.plainTextEdit.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.plainTextEdit.setLineWrapMode(QtGui.QPlainTextEdit.NoWrap)
+        self.plainTextEdit.setLineWrapMode(QtWidgets.QPlainTextEdit.NoWrap)
         self.plainTextEdit.setReadOnly(True)
-        self.plainTextEdit.setObjectName(_fromUtf8("plainTextEdit"))
+        self.plainTextEdit.setObjectName("plainTextEdit")
         self.verticalLayout_2.addWidget(self.plainTextEdit)
-        self.buttonBox = QtGui.QDialogButtonBox(DialogAbout)
+        self.buttonBox = QtWidgets.QDialogButtonBox(DialogAbout)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Ok)
-        self.buttonBox.setObjectName(_fromUtf8("buttonBox"))
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setObjectName("buttonBox")
         self.verticalLayout_2.addWidget(self.buttonBox)
 
         self.retranslateUi(DialogAbout)
-        QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("accepted()")), DialogAbout.accept)
-        QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("rejected()")), DialogAbout.reject)
+        self.buttonBox.accepted.connect(DialogAbout.accept)
+        self.buttonBox.rejected.connect(DialogAbout.reject)
         QtCore.QMetaObject.connectSlotsByName(DialogAbout)
 
     def retranslateUi(self, DialogAbout):
-        DialogAbout.setWindowTitle(_translate("DialogAbout", "About", None))
-        self.labelVersion.setText(_translate("DialogAbout", "<b>Yomichan {0}</b>", None))
-        self.label_3.setText(_translate("DialogAbout", "(c) 2013 by Alex Yatskov", None))
-        self.label_4.setText(_translate("DialogAbout", "<a href = \"http://foosoft.net/projects/yomichan\">http://foosoft.net/projects/yomichan</a>", None))
-        self.label_6.setText(_translate("DialogAbout", "This software uses the <a href = \"http://www.famfamfam.com/lab/icons/silk/\">Silk web icon set</a> created by Mark James.", None))
-        self.label_7.setText(_translate("DialogAbout", "Portions of this application\'s code and data are based on the <a href=\"http://www.polarcloud.com/rikaichan/\">Rikaichan</a> extension developed by Jonathan Zarate.", None))
-        self.label_5.setText(_translate("DialogAbout", "This package uses the <a href=\"http://www.csse.monash.edu.au/~jwb/edict.html\">EDICT</a> and <a href=\"http://www.csse.monash.edu.au/~jwb/kanjidic.html\">KANJIDIC</a> dictionary files. These files are the property of the <a href=\"http://www.edrdg.org/\"> Electronic Dictionary Research and Development Group</a>, and are used in conformance with the Group\'s <a href=\"http://www.edrdg.org/edrdg/licence.html\">licence</a>.", None))
+        _translate = QtCore.QCoreApplication.translate
+        DialogAbout.setWindowTitle(_translate("DialogAbout", "About"))
+        self.labelVersion.setText(_translate("DialogAbout", "<b>Yomichan {0}</b>"))
+        self.label_3.setText(_translate("DialogAbout", "(c) 2013 by Alex Yatskov"))
+        self.label_4.setText(_translate("DialogAbout", "<a href = \"http://foosoft.net/projects/yomichan\">http://foosoft.net/projects/yomichan</a>"))
+        self.label_6.setText(_translate("DialogAbout", "This software uses the <a href = \"http://www.famfamfam.com/lab/icons/silk/\">Silk web icon set</a> created by Mark James."))
+        self.label_7.setText(_translate("DialogAbout", "Portions of this application\'s code and data are based on the <a href=\"http://www.polarcloud.com/rikaichan/\">Rikaichan</a> extension developed by Jonathan Zarate."))
+        self.label_5.setText(_translate("DialogAbout", "This package uses the <a href=\"http://www.csse.monash.edu.au/~jwb/edict.html\">EDICT</a> and <a href=\"http://www.csse.monash.edu.au/~jwb/kanjidic.html\">KANJIDIC</a> dictionary files. These files are the property of the <a href=\"http://www.edrdg.org/\"> Electronic Dictionary Research and Development Group</a>, and are used in conformance with the Group\'s <a href=\"http://www.edrdg.org/edrdg/licence.html\">licence</a>."))
         self.plainTextEdit.setPlainText(_translate("DialogAbout", "                    GNU GENERAL PUBLIC LICENSE\n"
 "                       Version 3, 29 June 2007\n"
 "\n"
@@ -770,6 +759,5 @@ class Ui_DialogAbout(object):
 "the library.  If this is what you want to do, use the GNU Lesser General\n"
 "Public License instead of this License.  But first, please read\n"
 "<http://www.gnu.org/philosophy/why-not-lgpl.html>.\n"
-"", None))
-
-import resources_rc
+""))
+from . import resources_rc

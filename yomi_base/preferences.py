@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 import copy
-import gen.preferences_ui
+from .gen import preferences_ui
 import locale
 
 locale.setlocale(locale.LC_ALL, '')
@@ -14,9 +14,9 @@ lookupKeys = [
             ('F1',QtCore.Qt.Key_F1)
         ]
 
-class DialogPreferences(QtGui.QDialog, gen.preferences_ui.Ui_DialogPreferences):
+class DialogPreferences(QtWidgets.QDialog, preferences_ui.Ui_DialogPreferences):
     def __init__(self, parent, preferences, anki, profiles):
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
         self.setupUi(self)
         self.preferences = preferences
         self.anki = anki
@@ -87,8 +87,8 @@ class DialogPreferences(QtGui.QDialog, gen.preferences_ui.Ui_DialogPreferences):
 
     def dialogToProfile(self):
         self.setActiveProfile({
-            'deck': unicode(self.comboBoxDeck.currentText()),
-            'model': unicode(self.comboBoxModel.currentText()),
+            'deck': self.comboBoxDeck.currentText(),
+            'model': self.comboBoxModel.currentText(),
             'fields': self.ankiFields()
         })
 
@@ -101,16 +101,14 @@ class DialogPreferences(QtGui.QDialog, gen.preferences_ui.Ui_DialogPreferences):
 
         self.comboBoxDeck.blockSignals(True)
         self.comboBoxDeck.clear()
-        deckNames = self.anki.deckNames()
-        deckNames.sort(cmp=locale.strcoll)
+        deckNames = sorted(self.anki.deckNames())
         self.comboBoxDeck.addItems(deckNames)
         self.comboBoxDeck.setCurrentIndex(self.comboBoxDeck.findText(deck))
         self.comboBoxDeck.blockSignals(False)
 
         self.comboBoxModel.blockSignals(True)
         self.comboBoxModel.clear()
-        modelNames = self.anki.modelNames()
-        modelNames.sort(cmp=locale.strcoll)
+        modelNames = sorted(self.anki.modelNames())
         self.comboBoxModel.addItems(modelNames)
         self.comboBoxModel.setCurrentIndex(self.comboBoxModel.findText(model))
         self.comboBoxModel.blockSignals(False)
@@ -145,11 +143,11 @@ class DialogPreferences(QtGui.QDialog, gen.preferences_ui.Ui_DialogPreferences):
         for i, name in enumerate(fields):
             columns = list()
 
-            itemName = QtGui.QTableWidgetItem(name)
+            itemName = QtWidgets.QTableWidgetItem(name)
             itemName.setFlags(QtCore.Qt.ItemIsSelectable)
             columns.append(itemName)
 
-            itemValue = QtGui.QTableWidgetItem(fieldsPrefs.get(name, unicode()))
+            itemValue = QtWidgets.QTableWidgetItem(fieldsPrefs.get(name, ""))
             columns.append(itemValue)
 
             for j, column in enumerate(columns):
@@ -162,8 +160,8 @@ class DialogPreferences(QtGui.QDialog, gen.preferences_ui.Ui_DialogPreferences):
         result = dict()
 
         for i in range(0, self.tableFields.rowCount()):
-            itemName = unicode(self.tableFields.item(i, 0).text())
-            itemValue = unicode(self.tableFields.item(i, 1).text())
+            itemName = self.tableFields.item(i, 0).text()
+            itemValue = self.tableFields.item(i, 1).text()
             result[itemName] = itemValue
 
         return result
@@ -174,21 +172,21 @@ class DialogPreferences(QtGui.QDialog, gen.preferences_ui.Ui_DialogPreferences):
 
 
     def onButtonColorFgClicked(self):
-        color, ok = QtGui.QColorDialog.getRgba(self.preferences['fgColor'], self)
+        color, ok = QtWidgets.QColorDialog.getRgba(self.preferences['fgColor'], self)
         if ok:
             self.preferences['fgColor'] = color
             self.updateSampleText()
 
 
     def onButtonColorBgClicked(self):
-        color, ok = QtGui.QColorDialog.getRgba(self.preferences['bgColor'], self)
+        color, ok = QtWidgets.QColorDialog.getRgba(self.preferences['bgColor'], self)
         if ok:
             self.preferences['bgColor'] = color
             self.updateSampleText()
 
 
     def onFontFamilyChanged(self, font):
-        self.preferences['fontFamily'] = unicode(font.family())
+        self.preferences['fontFamily'] = font.family()
         self.updateSampleText()
 
 

@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from aqt.webview import AnkiWebView
-from PyQt4 import QtGui,QtCore
-from profile import *
+from PyQt5 import QtWidgets,QtCore
+from .profile import *
 from anki.utils import isWin
 import subprocess
 import os
@@ -10,12 +9,12 @@ import codecs
 import time
 import re
 import signal
-import pysrt
+from .srt import srt
 import aqt
 
 import sys
 import threading
-import Queue
+from . import Queue
 ON_POSIX = 'posix' in sys.builtin_module_names
 
 def enqueue_output(profile,out,queue):
@@ -36,7 +35,7 @@ if isWin:
     si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 else:
     si = None
-devnull = file(os.devnull,"w")
+devnull = open(os.devnull,"w")
 
 
 class MPlayerKeyFilter(QtCore.QObject):
@@ -90,7 +89,7 @@ class MovieProfile(GenericProfile):
         self.reader.installEventFilter(self.keyFilter)
         self.createNoteQueue = Queue.Queue()
 
-        self.fixTimings = QtGui.QPushButton(self.reader.dockWidgetContents_2)
+        self.fixTimings = QtWidgets.QPushButton(self.reader.dockWidgetContents_2)
         self.fixTimings.setObjectName(fromUtf8("fixTimings"))
         self.fixTimings.clicked.connect(self.onFixTimings)
         self.fixTimings.setText(translate("MainWindowReader", "Fix timings", None))

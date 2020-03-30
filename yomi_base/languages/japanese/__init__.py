@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import deinflect
-import dictionary
+from . import deinflect
+from . import dictionary
 import os.path
-import translate
+from . import translate
 
 def initLanguage(preferences,load=True):
     directory = os.path.dirname(__file__)

@@ -4,20 +4,20 @@ import sys
 import os
 import time
 import random
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 import anki
 import aqt
 from anki.hooks import addHook
 import anki.collection
-from yomichan import Yomichan
-from yomi_base.reader import MainWindowReader
-from yomi_base.file_state import FileState
-from yomi_base.scheduler import Scheduler
-from yomi_base.deckManager import DeckManager
-from yomi_base.errorHandler import ErrorHandler
-from yomi_base.anki_server import AnkiConnect
-from yomi_base import profiles
-from yomi_base.constants import extensions
+from .yomichan import Yomichan
+from .reader import MainWindowReader
+from .file_state import FileState
+from .scheduler import Scheduler
+from .deckManager import DeckManager
+from .errorHandler import ErrorHandler
+# from .anki_server import AnkiConnect
+from . import profiles
+from .constants import extensions
 from anki.models import defaultModel,defaultField,defaultTemplate
 from anki.utils import ids2str, intTime
 
@@ -145,7 +145,7 @@ document.getElementById("words").innerHTML = document.getElementById("words").in
     def browse(self, query):
         browser = aqt.dialogs.open('Browser', self.window())
         browser.form.searchEdit.lineEdit().setText(u' '.join([u'{0}:{1}'.format(key,value) for key,value in query.items()]))
-        browser.onSearch()
+        browser.onSearchActivated()
         
     
     def getNotes(self, modelName, key, value):
@@ -257,15 +257,15 @@ class YomichanPlugin(Yomichan):
         self.window = None
         self.anki = Anki()
         self.fileCache = dict()
-        self.ankiConnect = AnkiConnect(self, self.preferences)
+        # self.ankiConnect = AnkiConnect(self, self.preferences)
         self.parent = None #self.anki.window()
 
-        separator = QtGui.QAction(self.anki.window())
+        separator = QtWidgets.QAction(self.anki.window())
         separator.setSeparator(True)
         self.anki.addUiAction(separator)
         self.profiles = profiles.getAllProfileClasses()
         self.preventReload = False
-        action = QtGui.QAction(QtGui.QIcon(':/img/img/icon_logo_32.png'), '&Yomichan...', self.anki.window())
+        action = QtWidgets.QAction(QtGui.QIcon(':/img/img/icon_logo_32.png'), '&Yomichan...', self.anki.window())
         action.setIconVisibleInMenu(True)
         action.setShortcut('Ctrl+Y')
         action.triggered.connect(self.onShowRequest)
@@ -322,7 +322,7 @@ class YomichanPlugin(Yomichan):
             def processFile(file,relDir):
               if file[-4:] in extensions['text']:
                   path = os.path.join(relDir,file)
-                  fullPath = u'::'.join(unicode(path).split(os.sep))
+                  fullPath = u'::'.join(path.split(os.sep))
                   if fullPath in oldCache:
                       fileState = oldCache[fullPath]
                       fileState.load()
@@ -339,7 +339,7 @@ class YomichanPlugin(Yomichan):
                         processFile(file,relDir)
                     for dir in dirs:
                         path = os.path.join(relDir,dir)
-                        self.fileCache[u'::'.join(unicode(path).split(os.sep))] = None
+                        self.fileCache[u'::'.join(path.split(os.sep))] = None
             elif os.path.isfile(yomimedia):
                 processFile(os.path.basename(yomimedia),os.path.dirname(rootDir))
             
@@ -454,7 +454,7 @@ def searchYomichanDeck(val):
 
 def onSearch(cmds):
     def findByYomichanFile(oldfn):
-        def inner((val,args)):
+        def inner(val,args):
             if val.split("::")[0]=="Yomichan":
                 return searchYomichanDeck(val)
             else:

@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from aqt.webview import AnkiWebView
-from PyQt4 import QtGui
-from profile import *
+from PyQt5 import QtWidgets
+from .profile import *
 from .. import reader_util
-import BeautifulSoup
+import bs4 as BeautifulSoup
 
-import urllib
-import urllib2
+from urllib.request import urlopen
+from urllib.parse import urlencode
 
 class SentenceProfile(GenericProfile):
     name = "sentence"
@@ -20,34 +20,34 @@ class SentenceProfile(GenericProfile):
     def __init__(self,reader):
         GenericProfile.__init__(self,reader)
 
-        self.dockSentence = QtGui.QDockWidget(reader)
+        self.dockSentence = QtWidgets.QDockWidget(reader)
         self.dockSentence.setObjectName(fromUtf8("dockSentence"))
-        self.dockWidgetContents = QtGui.QWidget()
+        self.dockWidgetContents = QtWidgets.QWidget()
         self.dockWidgetContents.setObjectName(fromUtf8("dockWidgetContents"))
-        self.verticalLayout = QtGui.QVBoxLayout(self.dockWidgetContents)
+        self.verticalLayout = QtWidgets.QVBoxLayout(self.dockWidgetContents)
         self.verticalLayout.setObjectName(fromUtf8("verticalLayout"))
         self.textField = AnkiWebView()
         self.textField.setAcceptDrops(False)
         self.textField.setObjectName("textField")
         self.verticalLayout.addWidget(self.textField)
-        self.horizontalLayout_3 = QtGui.QHBoxLayout()
+        self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_3.setObjectName(fromUtf8("horizontalLayout_3"))
         self.verticalLayout.addLayout(self.horizontalLayout_3)
         self.dockSentence.setWidget(self.dockWidgetContents)
         reader.addDockWidget(QtCore.Qt.DockWidgetArea(2), self.dockSentence)
         self.dockSentence.visibilityChanged.connect(self.onVisibilityChanged)
         self.dockSentence.setWindowTitle(translate("MainWindowReader", "Sentence", None))
-        self.textField.setLinkHandler(self.onAnchorClicked)
+        self.textField.onBridgeCmd = self.onAnchorClicked
 
 
         # menu entries to toggle visibility of the Sentence dock
-        self.actionToggleSentence = QtGui.QAction(reader)
+        self.actionToggleSentence = QtWidgets.QAction(reader)
         self.actionToggleSentence.setCheckable(True)
         self.actionToggleSentence.setObjectName("actionToggleSentence")
         self.actionToggleSentence.setText("&Sentence")
         self.actionToggleSentence.setToolTip("Toggle Sentence")
         reader.menuView.insertAction(reader.menuView.actions()[2],self.actionToggleSentence)
-        QtCore.QObject.connect(self.actionToggleSentence, QtCore.SIGNAL("toggled(bool)"), self.dockSentence.setVisible)
+        self.actionToggleSentence.toggled.connect(self.dockSentence.setVisible)
 
     def onAnchorClicked(self, url):
         if url == "kotonoha":
@@ -70,19 +70,19 @@ class SentenceProfile(GenericProfile):
                 ("media",u"国会会議録".encode("utf-8")),
                 ("query_string",self.reader.getSample().encode("utf-8"))
             ]
-            data = urllib.urlencode(data)
+            data = urlencode(data)
             self.data = data
-            page = urllib2.urlopen(
-              urllib2.Request(url=link,data=data,
-              headers={'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11'})).read()
+            page = urlopen(
+              url=link,data=data,
+              headers={'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11'}).read()
             soup = BeautifulSoup.BeautifulSoup(page)
-            self.soup = unicode(soup)
+            self.soup = soup
             trs = soup.find("table",id="tablekit-table-1").findAll("tr")[1:]
             self.definitionType = "kotonoha"
             self.definitions = []
             for tr in trs:
                 tds = tr.findAll("td")[1:3]
-                row = ''.join(map(unicode,tds))
+                row = ''.join(tds)
                 self.definitions.append({
                     'text': row,
                     'filename': self.reader.state.filename,
@@ -140,12 +140,11 @@ class SentenceProfile(GenericProfile):
         links = ""
         if self.ankiIsFactValid('sentence', self.markup(definition), index):
             self.existsAlready[index] = False
-            links += '<a href="sentence_add:{0}"><img src="qrc:///img/img/icon_add_expression.png" align="right"></a>'.format(index)
+            links += """<a href='#' onclick='pycmd(\"{0}:{1}\")'><img src="qrc:///img/img/icon_add_expression.png" align="right"/></a>""".format("sentence_add", index)
         else:
             self.existsAlready[index] = True
-            #links += '<a href="sentence_add:{0}"><img src="qrc:///img/img/icon_add_expression.png" align="right"></a>'.format(index)
             if allowOverwrite:
-                links += '<a href="sentence_overwrite:{0}"><img src="qrc:///img/img/icon_overwrite_expression.png" align="right"></a>'.format(index)
+                links += """<a href='#' onclick='pycmd(\"{0}:{1}\")'><img src="qrc:///img/img/icon_overwrite_expression.png" align="right"/></a>""".format("sentence_overwrite", index)
 
         if hasattr(self,'definitionType') and self.definitionType == "normal":
             html = ("<b>Sentence: </b><br>" if index == 0 else "<b>Line</b><br>")
@@ -153,7 +152,7 @@ class SentenceProfile(GenericProfile):
             html = ""
         html = html + u"""
             <span class="sentence">{0}{1}<br>{2}</span>
-            <br clear="all">""".format(definition.get('text') or unicode(),
+            <br clear="all">""".format(definition.get('text') or "",
                                        links,definition.get('translation'))
         #html = u"""<a href='kotonoha'>[Kotonoha]</a><br>""" + html
 

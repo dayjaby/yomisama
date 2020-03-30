@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # needed to import javascript
-import execjs
+from . import execjs
 import os
 os.environ["EXECJS_RUNTIME"] = 'PyV8'
 #
@@ -27,5 +27,5 @@ class Deinflector:
                 if jsResult is not None:
                     results.append({'source': jsResult, 'rules':list()})
             except Exception as e:
-                print e
+                print(str(e))
         return results

@@ -11,21 +11,21 @@ class Dictionary:
                 pattern = re.compile("^([^#]*?)\s(.*?)\s\[(.*?)\]\s\/(.*)\/")
                 for line in file:
                     for match in pattern.findall(line):
-                        modern = unicode(match[1].decode('utf-8'))
-                        traditional = unicode(match[0].decode('utf-8'))
+                        modern = match[1]
+                        traditional = match[0]
                         if modern != traditional:
                             self.entries[traditional].append({
                                 'expression': traditional,
-                                'reading': match[2].decode('utf-8'),
-                                'glossary': match[3].decode('utf-8').replace(u"/",u"; "),
+                                'reading': match[2],
+                                'glossary': match[3].replace(u"/",u"; "),
                                 'language': u'Chinese',
                                 'tags': u'traditional'
                             })
                         self.entries[modern].append({
                             'expression': modern,
                             'traditional': traditional,
-                            'reading': match[2].decode('utf-8'),
-                            'glossary': match[3].decode('utf-8').replace(u"/",u"; "),
+                            'reading': match[2],
+                            'glossary': match[3].replace(u"/",u"; "),
                             'language': u'Chinese',
                         })
 

@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 from anki.utils import ids2str, intTime
-import about
-import constants
-import gen.reader_ui
 import os
 import io
 import aqt
-import preferences
-import reader_util
-import updates
 import sys
-from yomi_base import profiles
-from yomi_base.file_state import FileState
-from yomi_base.constants import extensions
+from . import preferences
+from . import reader_util
+from . import updates
+from . import about
+from . import constants
+from .gen import reader_ui
+from . import profiles
+from .file_state import FileState
+from .constants import extensions
 
 
 class Container(object):
@@ -64,19 +64,19 @@ class MyKeyFilter(QtCore.QObject):
         return True
 
 
-class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
+class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
             
                 
     class State:
         def __init__(self):
-            self.filename = unicode()
+            self.filename = ""
             self.scanPosition = 0
             self.searchPosition = 0
-            self.searchText = unicode()
+            self.searchText = ""
 
 
     def __init__(self, plugin, parent, preferences, languages, anki=None, closed=None):
-        QtGui.QMainWindow.__init__(self, parent)
+        QtWidgets.QMainWindow.__init__(self, parent)
         self.debug = []
         self.setupUi(self)
         self.parent = parent
@@ -132,7 +132,6 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
         
         if self.preferences['checkForUpdates']:
             self.updates.start()
-        import profiles
         self.profiles = profiles.getAllProfiles(self)
         for profile in self.profiles.values():
             profile.updateDefinitions()
@@ -168,7 +167,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
         totalMinutes = int(self.currentFile.timeTotal) // 60
         perCardSeconds = int(self.currentFile.timePerWord) %  60
         perCardMinutes = int(self.currentFile.timePerWord) // 60
-        QtGui.QMessageBox.information(
+        QtWidgets.QMessageBox.information(
             self,
             'Yomichan', '{0} correct and {1} wrong\n{2} minutes {3} seconds for all\n{4} minutes {5} seconds per card'
             .format(self.currentFile.correct,self.currentFile.wrong,
@@ -179,7 +178,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
 
     def applyPreferences(self):
         if self.preferences['windowState'] is not None:
-            self.restoreState(QtCore.QByteArray.fromBase64(self.preferences['windowState']))
+            self.restoreState(QtCore.QByteArray.fromBase64(self.preferences['windowState'].encode("utf-8")))
         if self.preferences['windowPosition'] is not None:
             self.move(QtCore.QPoint(*self.preferences['windowPosition']))
         if self.preferences['windowSize'] is not None:
@@ -189,7 +188,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
         self.applyPreferencesContent()
 
         if self.preferences['firstRun']:
-            QtGui.QMessageBox.information(
+            QtWidgets.QMessageBox.information(
                 self,
                 'Yomichan',
                 'This may be the first time you are running Yomichan.\nPlease take some time to configure this extension.'
@@ -209,7 +208,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
         font = self.textContent.font()
         font.setFamily(self.preferences['fontFamily'])
         font.setPointSize(self.preferences['fontSize'] + self.zoom)
-        self.textContent.setLineWrapMode(QtGui.QPlainTextEdit.WidgetWidth if self.preferences['wordWrap'] else QtGui.QPlainTextEdit.NoWrap)
+        self.textContent.setLineWrapMode(QtWidgets.QPlainTextEdit.WidgetWidth if self.preferences['wordWrap'] else QtWidgets.QPlainTextEdit.NoWrap)
         self.textContent.setFont(font)
 
         self.actionToggleWrap.setChecked(self.preferences['wordWrap'])
@@ -262,7 +261,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
 
 
     def onActionOpen(self):
-        filename = QtGui.QFileDialog.getOpenFileName(
+        filename = QtWidgets.QFileDialog.getOpenFileName(
             parent=self,
             caption='Select a file to open',
             directory=self.state.filename,
@@ -272,7 +271,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
             self.openFile(filename)
     
     def onActionSave(self):
-        filename = QtGui.QFileDialog.getSaveFileName(
+        filename, filter_str = QtWidgets.QFileDialog.getSaveFileName(
             parent=self,
             caption='Select a file to save',
             directory=self.state.filename,
@@ -283,7 +282,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
     
 
     def onActionKindleDeck(self):
-        filename = QtGui.QFileDialog.getOpenFileName(
+        filename = QtWidgets.QFileDialog.getOpenFileName(
             parent=self,
             caption='Select a Kindle deck to import',
             filter='Deck files (*.db)'
@@ -294,7 +293,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
 
 
     def onActionWordList(self):
-        filename = QtGui.QFileDialog.getOpenFileName(
+        filename = QtWidgets.QFileDialog.getOpenFileName(
             parent=self,
             caption='Select a word list file to import',
             filter=self.getFileFilter()
@@ -306,7 +305,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
           
     def onActionPreferences(self):
         dialog = preferences.DialogPreferences(self, self.preferences, self.anki, self.profiles)
-        if dialog.exec_() == QtGui.QDialog.Accepted:
+        if dialog.exec_() == QtWidgets.QDialog.Accepted:
             self.applyPreferencesContent()
 
 
@@ -346,7 +345,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
         if cursor.hasSelection():
             searchText = cursor.selectedText()
 
-        searchText, ok = QtGui.QInputDialog.getText(self, 'Find', 'Search text:', text=searchText)
+        searchText, ok = QtWidgets.QInputDialog.getText(self, 'Find', 'Search text:', text=searchText)
         if searchText and ok:
             self.findText(searchText)
 
@@ -358,7 +357,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
 
     def onActionToggleWrap(self, wrap):
         self.preferences['wordWrap'] = wrap
-        self.textContent.setLineWrapMode(QtGui.QPlainTextEdit.WidgetWidth if self.preferences['wordWrap'] else QtGui.QPlainTextEdit.NoWrap)
+        self.textContent.setLineWrapMode(QtWidgets.QPlainTextEdit.WidgetWidth if self.preferences['wordWrap'] else QtWidgets.QPlainTextEdit.NoWrap)
 
     def onActionToggleLanguage(self, language):
         def inner(enable):
@@ -371,12 +370,12 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
             
     def onActionHomepage(self):
         url = QtCore.QUrl('http://dayjaby.wordpress.com')
-        QtGui.QDesktopServices().openUrl(url)
+        QtWidgets.QDesktopServices().openUrl(url)
 
 
     def onActionFeedback(self):
         url = QtCore.QUrl('http://dayjaby.wordpress.com')
-        QtGui.QDesktopServices().openUrl(url)
+        QtWidgets.QDesktopServices().openUrl(url)
 
 
     def onDefinitionDoubleClicked(self, item):
@@ -398,12 +397,12 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
 
 
     def onContentMouseMove(self, event):
-        QtGui.QPlainTextEdit.mouseMoveEvent(self.textContent, event)
+        QtWidgets.QPlainTextEdit.mouseMoveEvent(self.textContent, event)
         self.updateSampleMouseEvent(event)
 
 
     def onContentMousePress(self, event):
-        QtGui.QPlainTextEdit.mousePressEvent(self.textContent, event)
+        QtWidgets.QPlainTextEdit.mousePressEvent(self.textContent, event)
         self.updateSampleMouseEvent(event)
 
     def findTerm(self, text, wildcards=False):
@@ -413,19 +412,18 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
             if self.preferences[key]:
                 vocabDefs, length = language.findTerm(text, wildcards)
                 self.profiles["vocabulary"].definitions += vocabDefs
-                if length > maxLength:
+                if length is not None and length > maxLength:
                     maxLength = length
         return maxLength
 
 
     def openFile(self, filename):
-        filename = unicode(filename)
         self.closeFile()
         try:
             self.currentFile = FileState(filename, self.preferences['stripReadings'],self.languages,self.profiles)
         except IOError:
             self.setStatus(u'Failed to load file {0}'.format(filename))
-            QtGui.QMessageBox.critical(self, 'Yomichan', 'Cannot open file for read')
+            QtWidgets.QMessageBox.critical(self, 'Yomichan', 'Cannot open file for read')
             return
         self.listDefinitions.clear()
         self.facts = []
@@ -463,7 +461,6 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
 
     def saveFile(self, filename):
         try:
-            filename = unicode(filename)
             with io.open(filename,'w',encoding='utf-8') as fp:
                 if filename.endswith('.json'):
                     content = self.currentFile.getExportJSON(self.textContent.toPlainText())
@@ -480,7 +477,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
                 fp.close()
         except IOError:
             self.setStatus(u'Failed to save file {0}'.format(filename))
-            QtGui.QMessageBox.critical(self, 'Yomichan', 'Cannot open file for write')
+            QtWidgets.QMessageBox.critical(self, 'Yomichan', 'Cannot open file for write')
             return
         self.state.filename = filename
         self.currentFile.filename = filename
@@ -490,17 +487,17 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
 
     def closeFile(self):
         if self.preferences['rememberTextContent']:
-            self.preferences['textContent'] = unicode(self.textContent.toPlainText())
+            self.preferences['textContent'] = self.textContent.toPlainText()
 
         self.setWindowTitle('Yomisama')
-        self.textContent.setPlainText(unicode())
+        self.textContent.setPlainText("")
         self.updateRecentFile(False)
         self.state = self.State()
 
 
     def findText(self, text):
-        content = unicode(self.textContent.toPlainText())
-        index = content.find(unicode(text), self.state.searchPosition)
+        content = self.textContent.toPlainText()
+        index = content.find(text, self.state.searchPosition)
 
         if index == -1:
             wrap = self.state.searchPosition != 0
@@ -508,7 +505,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
             if wrap:
                 self.findText(text)
             else:
-                QtGui.QMessageBox.information(self, 'Yomisama', 'Search text not found')
+                QtWidgets.QMessageBox.information(self, 'Yomisama', 'Search text not found')
         else:
             self.state.searchPosition = index + len(text)
             cursor = self.textContent.textCursor()
@@ -530,7 +527,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
             self.overwrite = "profile is None"
             return False
         fields = reader_util.formatFields(profile['fields'], markup)
-        tagsSplit = reader_util.splitTags(unicode(self.comboTags.currentText()))
+        tagsSplit = reader_util.splitTags(self.comboTags.currentText())
         tagsJoined = ' '.join(tagsSplit)
         tagIndex = self.comboTags.findText(tagsJoined)
         if tagIndex > 0:
@@ -554,7 +551,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
         }
         for name, v in fields.items():
             if name in note:
-                if unicode(name[-1]) == u'+':
+                if name[-1] == '+':
                     if not v in note[name].split(u'<br>'):
                         if len(note[name])>0:
                             note[name]+= u'<br>' + v
@@ -595,7 +592,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
         if not self.anki.canAddNote(profile['deck'], profile['model'], fields):
             return self.ankiOverwriteFact(completeProfile, markup)
         self.fields = (fields,profile['fields'],markup)
-        tagsSplit = reader_util.splitTags(unicode(self.comboTags.currentText()))
+        tagsSplit = reader_util.splitTags(self.comboTags.currentText())
         tagsJoined = ' '.join(tagsSplit)
 
         tagIndex = self.comboTags.findText(tagsJoined)
@@ -650,9 +647,9 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
 
     def createAlias(self):
         self.updateSampleFromPosition()
-        text, ok = QtGui.QInputDialog.getText(self, 'Create Alias', 'Replace with:')
+        text, ok = QtWidgets.QInputDialog.getText(self, 'Create Alias', 'Replace with:')
         if ok:
-            content = unicode(self.textContent.toPlainText())
+            content = self.textContent.toPlainText()
             self.currentFile.alias[text] = content[self.samplePosStart:self.samplePosEnd]
             content = content[:self.samplePosStart] + text + content[self.samplePosEnd:]
             self.samplePosEnd = self.samplePosStart + len(text)
@@ -663,9 +660,9 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
             self.textContent.setTextCursor(cursor)
 
     def createSubscription(self):
-        source, ok = QtGui.QInputDialog.getText(self, 'Create Subscription', 'Source: ')
+        source, ok = QtWidgets.QInputDialog.getText(self, 'Create Subscription', 'Source: ')
         if ok:
-            target, ok = QtGui.QInputDialog.getText(self, 'Create Subscription', 'Target: ')
+            target, ok = QtWidgets.QInputDialog.getText(self, 'Create Subscription', 'Target: ')
         if ok:
             target = os.path.join(os.path.join(aqt.mw.col.media.dir(),'Yomichan'),target)
             if not os.path.exists(os.path.dirname(target)):
@@ -674,13 +671,13 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
             self.plugin.loadSubscriptions()
 
     def getSample(self):
-        return unicode(self.textContent.toPlainText())[self.samplePosStart:self.samplePosEnd]
+        return self.textContent.toPlainText()[self.samplePosStart:self.samplePosEnd]
             
     def updateSampleFromPosition(self):
         self.samplePosEnd = self.state.scanPosition + self.preferences['scanLength']
         d = dict()
         cursor = self.textContent.textCursor()
-        d['content'] = unicode(self.textContent.toPlainText())
+        d['content'] = self.textContent.toPlainText()
         d['samplePosStart'] = self.state.scanPosition
         if d['samplePosStart'] >= len(d['content']):
             return
@@ -697,7 +694,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
                     break
         if alias is None:
             d['contentSample'] = d['content'][d['samplePosStart']:self.samplePosEnd]
-            d['contentSampleFlat'] = d['contentSample'].replace(u'\n', unicode())
+            d['contentSampleFlat'] = d['contentSample'].replace('\n', '')
 
         if len(d['content']) == 0:
             return
@@ -771,7 +768,7 @@ class MainWindowReader(QtGui.QMainWindow, gen.reader_ui.Ui_MainWindowReader):
                 self.recentIncorrect = None
             
     def showNotFoundWords(self):
-        QtGui.QMessageBox.critical(self, 'Yomichan', u'\n'.join(self.currentFile.profiles['vocabulary']['wordsNotFound']))
+        QtWidgets.QMessageBox.critical(self, 'Yomichan', u'\n'.join(self.currentFile.profiles['vocabulary']['wordsNotFound']))
         if len(self.currentFile.profiles['vocabulary']['wordsNotFound']) > 0:
             txt = self.currentFile.profiles['vocabulary']['wordsNotFound'][0]
             lbracket = txt.find(u'[')

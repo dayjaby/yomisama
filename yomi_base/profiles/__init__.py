@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import vocabulary
-import kanji
-import sentence
-import movie
+from . import vocabulary
+from . import kanji
+from . import sentence
+from . import movie
 
 def getAllProfiles(reader):
     allProfiles = dict()

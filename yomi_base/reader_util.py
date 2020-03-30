@@ -1,27 +1,29 @@
 # -*- coding: utf-8 -*-
 
-from PyQt4 import QtGui
 import re
 import codecs
 import sqlite3
 
 
 def decodeContent(content):
+    return content, 'utf-8'
+
+    """
     encodings = ['utf-8', 'shift_jis', 'euc-jp', 'utf-16']
     errors = dict()
 
     for encoding in encodings:
         try:
             return content.decode(encoding), encoding
-        except UnicodeDecodeError, e:
+        except UnicodeDecodeError as e:
             errors[encoding] = e[2]
 
     encoding = sorted(errors, key=errors.get, reverse=True)[0]
-    return content.decode(encoding, 'replace'), encoding
+    return content.decode(encoding, 'replace'), encoding"""
 
 
 def stripReadings(content):
-    return re.sub(u'《[^》]+》', unicode(), content)
+    return re.sub(u'《[^》]+》', "", content)
 
 def findLine(content, position):
     startLine = content[0:position].rfind(u'\n')
@@ -43,7 +45,7 @@ def findSentence(content, position):
 
     start = 0
     position = min(position,len(content))
-    for i in xrange(position, start, -1):
+    for i in range(position, start, -1):
         c = content[i-1]
 
         if not quoteStack and (c in terminators or c in quotesFwd):
@@ -58,7 +60,7 @@ def findSentence(content, position):
     quoteStack = list()
 
     end = len(content)
-    for i in xrange(position, end):
+    for i in range(position, end):
         c = content[i]
 
         if not quoteStack:
@@ -97,7 +99,7 @@ def formatFields(fields, markup):
 
 
 def splitTags(tags):
-    return filter(lambda tag: tag.strip(), re.split('[;,\s]', tags))
+    return list(filter(lambda tag: tag.strip(), re.split('[;,\s]', tags)))
 
 def markupSentenceExp(definition):
     if definition.get('reading'):

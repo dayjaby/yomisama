@@ -103,7 +103,7 @@ class AjaxServer:
 
 
     def advanceClients(self):
-        self.clients = filter(lambda c: c.advance(), self.clients)
+        self.clients = list(filter(lambda c: c.advance(), self.clients))
 
 
     def listen(self, address='127.0.0.1', port=8766, backlog=5):

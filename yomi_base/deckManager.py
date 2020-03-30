@@ -6,8 +6,8 @@ import anki.utils
 from anki.consts import *
 import os,shutil
 import copy
-import yomi_base.anki_bridge
-from yomi_base.constants import extensions
+from . import anki_bridge
+from .constants import extensions
 
 class DeckManager(anki.decks.DeckManager):
     customDeckManager = True
@@ -24,7 +24,7 @@ class DeckManager(anki.decks.DeckManager):
 
     def get_yomi_cids(self, did):
         deck = self.get(did)
-        return self.col.db.list("select c.id from cards c join notes n on n.id = c.nid where " + yomi_base.anki_bridge.searchYomichanDeck(deck["name"]))
+        return self.col.db.list("select c.id from cards c join notes n on n.id = c.nid where " + anki_bridge.searchYomichanDeck(deck["name"]))
 
     def cids(self, did, children=False):
         if self.isYomiDeck(did):

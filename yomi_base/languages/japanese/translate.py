@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import operator
-import util
+from . import util
 
 
 class Translator:
@@ -18,7 +18,7 @@ class Translator:
             text = text["contentSampleFlat"]
             text = util.sanitize(text, wildcards=wildcards)
 
-            for i in xrange(len(text), 0, -1):
+            for i in range(len(text), 0, -1):
                 term = text[:i]
                 deinflections = self.deinflector.deinflect(term, self.validator)
                 if deinflections is None:
@@ -27,8 +27,8 @@ class Translator:
                     for deinflection in deinflections:
                         self.processTerm(groups, term, **deinflection)
 
-        results = map(self.formatResult, groups.items())
-        results = filter(operator.truth, results)
+        results = [self.formatResult(group) for group in groups.items()]
+        results = [result for result in results if result]
         results = sorted(results, key=lambda d: (len(d['source']), 'P' in d['tags'],-len(d['expression']), -len(d['rules'])), reverse=True)
 
         length = 0

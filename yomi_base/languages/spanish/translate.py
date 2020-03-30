@@ -24,7 +24,7 @@ class Translator:
         minw = len(w)-2 if len(w)>2 else 0
         hashs = dict()
         self.words = []
-        for i in xrange(len(w), minw, -1):
+        for i in range(len(w), minw, -1):
             word = w[:i]
             words = [word]
             

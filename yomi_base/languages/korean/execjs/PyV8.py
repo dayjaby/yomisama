@@ -52,7 +52,7 @@ class JSError(Exception):
         return str(self._impl)
 
     def __unicode__(self, *args, **kwargs):
-        return unicode(self._impl)
+        return self._impl
 
     def __getattribute__(self, attr):
         impl = super(JSError, self).__getattribute__("_impl")
@@ -257,7 +257,7 @@ class JSDebugProtocol(object):
         EVENT = 'event'
 
         def __init__(self, payload):
-            self.data = json.loads(payload) if type(payload) in [str, unicode] else payload
+            self.data = json.loads(payload) if type(payload) in [str] else payload
 
         @property
         def seq(self):
@@ -336,7 +336,7 @@ class JSDebugEvent(_PyV8.JSDebugEvent):
             return self.count(self.frame)
 
         def __iter__(self):
-            for i in xrange(self.count(self.frame)):
+            for i in range(self.count(self.frame)):
                 yield (self.name(self.frame, i), self.value(self.frame, i))
 
     class Frame(object):
@@ -432,7 +432,7 @@ class JSDebugEvent(_PyV8.JSDebugEvent):
             return self.state.frameCount
 
         def __iter__(self):
-            for i in xrange(self.state.frameCount):
+            for i in range(self.state.frameCount):
                 yield self.state.frame(i)
 
     class State(object):
@@ -932,7 +932,7 @@ class TestContext(unittest.TestCase):
 
             self.assertEquals(3, int(env1.eval("prop")))
 
-            print env1.eval("env1")
+            print(env1.eval("env1"))
 
             with env2:
                 self.assertEquals(3, int(env2.eval("this.env1.prop")))
@@ -1009,9 +1009,6 @@ class TestWrapper(unittest.TestCase):
         class MyString(str, JSClass):
             pass
 
-        class MyUnicode(unicode, JSClass):
-            pass
-
         class MyDateTime(time, JSClass):
             pass
 
@@ -1027,7 +1024,7 @@ class TestWrapper(unittest.TestCase):
 
             var_myint = MyInteger()
             var_mystr = MyString('mystr')
-            var_myunicode = MyUnicode('myunicode')
+            var_myunicode = MyString('myunicode')
             var_mytime = MyDateTime()
 
         with JSContext(Global()) as ctxt:
@@ -1328,7 +1325,7 @@ class TestWrapper(unittest.TestCase):
 
             self.assertEqual(10, len(l))
 
-            for i in xrange(10):
+            for i in range(10):
                 self.assertEqual(10-i, array[i])
                 self.assertEqual(10-i, l[i])
 
@@ -1343,7 +1340,7 @@ class TestWrapper(unittest.TestCase):
             ctxt.locals.array1 = JSArray(5)
             ctxt.locals.array2 = JSArray([1, 2, 3, 4, 5])
 
-            for i in xrange(len(ctxt.locals.array2)):
+            for i in range(len(ctxt.locals.array2)):
                 ctxt.locals.array1[i] = ctxt.locals.array2[i] * 10
 
             ctxt.eval("""
@@ -1481,8 +1478,8 @@ class TestWrapper(unittest.TestCase):
 
     def testUnicode(self):
         with JSContext() as ctxt:
-            self.assertEquals(u"人", unicode(ctxt.eval(u"\"人\""), "utf-8"))
-            self.assertEquals(u"é", unicode(ctxt.eval(u"\"é\""), "utf-8"))
+            self.assertEquals(u"人", ctxt.eval(u"\"人\""), "utf-8")
+            self.assertEquals(u"é", ctxt.eval(u"\"é\""), "utf-8")
 
             func = ctxt.eval("(function (msg) { return msg.length; })")
 

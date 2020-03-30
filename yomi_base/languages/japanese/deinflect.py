@@ -4,7 +4,7 @@ import codecs
 import json
 import re
 
-from jcconv import *
+from .jcconv import *
 
 #
 # Deinflection

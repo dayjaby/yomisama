@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from PyQt4 import QtCore, QtGui
-from yomi_base import reader_util
+from PyQt5 import QtCore, QtWidgets, QtGui
+from .. import reader_util
 
 try:
     fromUtf8 = QtCore.QString.fromUtf8
@@ -10,12 +10,12 @@ except AttributeError:
         return s
 
 try:
-    encoding = QtGui.QApplication.UnicodeUTF8
+    encoding = QtWidgets.QApplication.UnicodeUTF8
     def translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig, encoding)
+        return QtWidgets.QApplication.translate(context, text, disambig, encoding)
 except AttributeError:
     def translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig)
+        return QtWidgets.QApplication.translate(context, text, disambig)
 
 class GenericProfile:
     name = ""
@@ -45,7 +45,7 @@ class GenericProfile:
         return lengthMatched
 
     def onShowDialogPreferences(self,dialog):
-        self.radioButton = QtGui.QRadioButton(dialog.tabAnki)
+        self.radioButton = QtWidgets.QRadioButton(dialog.tabAnki)
         self.radioButton.setChecked(True)
         self.radioButton.setObjectName(fromUtf8("radioButton" + self.displayedName))
         dialog.horizontalLayout_2.addWidget(self.radioButton)
@@ -86,17 +86,19 @@ class GenericProfile:
         html = self.buildDefinitions(defs,self.reader.anki is not None)
         html = self.fixHtml(html)
         control = self.textField
-        position = control.page().mainFrame().scrollBarValue(QtCore.Qt.Vertical)
+
+        # TODO: Fix this
+        ## position = control.page().mainFrame().scrollBarValue(QtCore.Qt.Vertical)
         self.textField.setHtml(html)
 
-        if options.get('scroll', False):
-            control.page().mainFrame().setScrollBarValue(QtCore.Qt.Vertical,position)
+        ## if options.get('scroll', False):
+        ##    control.page().mainFrame().setScrollBarValue(QtCore.Qt.Vertical,position)
 
     def fixHtml(self,html):
         return html
 
     def buildDefHeader(self):
-        palette = QtGui.QApplication.palette()
+        palette = QtWidgets.QApplication.palette()
         toolTipBg = palette.color(QtGui.QPalette.Window).name()
         toolTipFg = palette.color(QtGui.QPalette.WindowText).name()
 

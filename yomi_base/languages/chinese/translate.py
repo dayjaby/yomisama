@@ -9,7 +9,7 @@ class Translator:
         text = text["contentSampleFlat"]
         results = []
         length = None
-        for i in xrange(len(text), 0, -1):
+        for i in range(len(text), 0, -1):
             term = text[:i]
             for entry in self.dictionary.findTerm(term, wildcards):
                 if length is None:
@@ -21,7 +21,7 @@ class Translator:
 
     def findCharacters(self, text):
         results = []
-        for i in xrange(len(text), 0, -1):
+        for i in range(len(text), 0, -1):
             term = text[:i]
             for entry in self.dictionary.findCharacter(root):
                 results.append(entry)

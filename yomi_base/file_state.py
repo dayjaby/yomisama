@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import reader_util
+from . import reader_util
 import time
 import os
 import re
@@ -36,7 +36,7 @@ class FileState:
             self.basename = u''
             self.name = u''
         else:
-            self.filename = unicode(fn)
+            self.filename = fn
             self.name = os.path.splitext(self.filename)[0]
             self.basename = os.path.basename(self.name)
             self.load()
@@ -80,7 +80,7 @@ class FileState:
                     wordData[y] = access(profile['wordsMarkup'][x],y)
                 profileData[x] = wordData
             data['profiles'][p] = profileData
-        return unicode(json.dumps(data,sort_keys=True,indent=4,ensure_ascii=False))
+        return json.dumps(data,sort_keys=True,indent=4,ensure_ascii=False)
 
     def getExportVocabularyList(self,profile):
         profile = self.profiles[profile]

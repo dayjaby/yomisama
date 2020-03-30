@@ -66,7 +66,7 @@ def wide2half(text):
 # input text must be unicode or str(utf-8)
 # 'frm' and 'to' can be specified with (HIRA, KATA, HALF, WNUM, HNUM, WALP, HALP)
 def convert(text, frm, to):
-  uflag = isinstance(text, unicode)
+  uflag = True
   f_set = jcconv.char_sets[frm]
   t_set = jcconv.char_sets[to]
 
@@ -112,7 +112,7 @@ if __name__ == '__main__':
   import codecs, sys
   sys.stdout = codecs.getwriter('utf_8')(sys.stdout)
   
-  print convert(u'あいうえお', jcconv.HIRA, jcconv.HALF)
-  print convert(u'ばいおりん', jcconv.HIRA, jcconv.HALF)
-  print convert(u'ﾊﾞｲｵﾘﾝ', jcconv.HALF, jcconv.HIRA)
-  print convert(u'12345', jcconv.HNUM, jcconv.WNUM)
+  print(convert(u'あいうえお', jcconv.HIRA, jcconv.HALF))
+  print(convert(u'ばいおりん', jcconv.HIRA, jcconv.HALF))
+  print(convert(u'ﾊﾞｲｵﾘﾝ', jcconv.HALF, jcconv.HIRA))
+  print(convert(u'12345', jcconv.HNUM, jcconv.WNUM))

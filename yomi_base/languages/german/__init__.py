@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import dictionary
+from . import dictionary
 import os.path
-import translate
+from . import translate
 
 
 def initLanguage(preferences,load=True):

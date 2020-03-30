@@ -1,3 +1,3 @@
-[submodule "pysrt"]
-	path = pysrt
-	url = https://github.com/byroot/pysrt
+[submodule "yomi_base/profiles/srt"]
+	path = yomi_base/profiles/srt
+	url = https://github.com/cdown/srt

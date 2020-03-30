@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import operator
-import util
+from . import util
 
 
 class Translator:
@@ -18,7 +18,7 @@ class Translator:
 
         
         length = 0
-        for i in xrange(len(text), 0, -1):
+        for i in range(len(text), 0, -1):
             term = text[:i]
             deinflections = self.deinflector.deinflect(term, self.validator)
             groupsBefore = len(groups)
@@ -30,8 +30,8 @@ class Translator:
             if len(groups) > groupsBefore and length == 0:
                 length = i
 
-        results = map(self.formatResult, groups.items())
-        results = filter(operator.truth, results)
+        results = [self.formatResult(group) for group in groups.items()]
+        results = [result for result in results if result]
         results = sorted(results, key=lambda d: (len(d['source'])), reverse=True)
         return results, length
 

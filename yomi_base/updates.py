@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 
-from PyQt4 import QtCore, QtGui
-import constants
-import gen.updates_ui
+from PyQt5 import QtCore, QtWidgets
+from . import constants
+from .gen import updates_ui
 import json
-import urllib2
+from urllib.request import urlopen
 
 
-class DialogUpdates(QtGui.QDialog, gen.updates_ui.Ui_DialogUpdates):
+class DialogUpdates(QtWidgets.QDialog, updates_ui.Ui_DialogUpdates):
     def __init__(self, parent, versions):
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
         self.setupUi(self)
 
         self.updateHtml(versions)
         self.labelUpdates.setText(
-            unicode(self.labelUpdates.text()).format(
+            self.labelUpdates.text().format(
                 constants.c['appVersion'],
                 versions['latest']
             )
@@ -44,7 +44,7 @@ class UpdateFinder(QtCore.QThread):
         updates = list()
 
         try:
-            fp = urllib2.urlopen('http://cult-soft.de/yomisama/updates.json')
+            fp = urlopen('http://cult-soft.de/yomisama/updates.json')
             updates = json.loads(fp.read())
             fp.close()
 

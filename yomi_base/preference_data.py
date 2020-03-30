@@ -2,12 +2,11 @@
 
 import codecs
 import json
-import operator
 import os
 import collections
 
 def update(d, u):
-    for k, v in u.iteritems():
+    for k, v in u.items():
         if isinstance(v, collections.Mapping):
             r = update(d.get(k, {}), v)
             d[k] = r
@@ -58,13 +57,12 @@ class Preferences(object):
 
 
     def filePosition(self, filename):
-        matches = filter(lambda f: f['path'] == filename, self['recentFiles'])
+        matches = list(filter(lambda f: f['path'] == filename, self['recentFiles']))
         return 0 if len(matches) == 0 else matches[0]['position']
 
 
     def recentFiles(self):
-        return map(operator.itemgetter('path'), self['recentFiles'])
-
+        return [x['path'] for x in self['recentFiles']]
 
     def updateFactTags(self, tags):
         if tags in self['tags']:
@@ -73,7 +71,7 @@ class Preferences(object):
 
 
     def updateRecentFile(self, filename, position):
-        self['recentFiles'] = filter(lambda f: f['path'] != filename, self['recentFiles'])
+        self['recentFiles'] = list(filter(lambda f: f['path'] != filename, self['recentFiles']))
         self['recentFiles'].insert(0, {'path': filename, 'position': position})
 
 

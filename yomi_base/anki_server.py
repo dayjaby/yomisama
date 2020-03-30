@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 from ajax import AjaxServer
-from constants import c
+from .constants import c
 
 
 class AnkiConnect:

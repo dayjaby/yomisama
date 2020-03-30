@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from aqt.webview import AnkiWebView
-from PyQt4 import QtGui
-from profile import *
+from PyQt5 import QtWidgets
+from .profile import *
 import os
 
 class KanjiProfile(GenericProfile):
@@ -16,34 +16,34 @@ class KanjiProfile(GenericProfile):
     def __init__(self,reader):
         GenericProfile.__init__(self,reader)
 
-        self.dockKanji = QtGui.QDockWidget(reader)
+        self.dockKanji = QtWidgets.QDockWidget(reader)
         self.dockKanji.setObjectName(fromUtf8("dockKanji"))
-        self.dockWidgetContents = QtGui.QWidget()
+        self.dockWidgetContents = QtWidgets.QWidget()
         self.dockWidgetContents.setObjectName(fromUtf8("dockWidgetContents"))
-        self.verticalLayout = QtGui.QVBoxLayout(self.dockWidgetContents)
+        self.verticalLayout = QtWidgets.QVBoxLayout(self.dockWidgetContents)
         self.verticalLayout.setObjectName(fromUtf8("verticalLayout"))
         self.textField = AnkiWebView()
         self.textField.setAcceptDrops(False)
         self.textField.setObjectName("textField")
         self.verticalLayout.addWidget(self.textField)
-        self.horizontalLayout_3 = QtGui.QHBoxLayout()
+        self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_3.setObjectName(fromUtf8("horizontalLayout_3"))
         self.verticalLayout.addLayout(self.horizontalLayout_3)
         self.dockKanji.setWidget(self.dockWidgetContents)
         reader.addDockWidget(QtCore.Qt.DockWidgetArea(2), self.dockKanji)
         self.dockKanji.visibilityChanged.connect(self.onVisibilityChanged)
         self.dockKanji.setWindowTitle(translate("MainWindowReader", "Kanji", None))
-        self.textField.setLinkHandler(self.onAnchorClicked)
+        self.textField.onBridgeCmd = self.onAnchorClicked
 
 
         # menu entries to toggle visibility of the Kanji dock
-        self.actionToggleKanji = QtGui.QAction(reader)
+        self.actionToggleKanji = QtWidgets.QAction(reader)
         self.actionToggleKanji.setCheckable(True)
         self.actionToggleKanji.setObjectName("actionToggleKanji")
         self.actionToggleKanji.setText("&Kanji")
         self.actionToggleKanji.setToolTip("Toggle Kanji")
+        self.actionToggleKanji.toggled.connect(self.dockKanji.setVisible)
         reader.menuView.insertAction(reader.menuView.actions()[2],self.actionToggleKanji)
-        QtCore.QObject.connect(self.actionToggleKanji, QtCore.SIGNAL("toggled(bool)"), self.dockKanji.setVisible)
 
 
     def onVisibilityChanged(self,visible):
@@ -51,10 +51,11 @@ class KanjiProfile(GenericProfile):
 
     def onAnchorClicked(self, url):
         command, index = url.split(':')
+        print(command, index)
         if command == "jisho":
             self.reader.profiles["vocabulary"].onQuery([index])
             #url = QtCore.QUrl(self.reader.preferences["linkToKanji"].format(index))
-            #QtGui.QDesktopServices().openUrl(url)
+            #QtWidgets.QDesktopServices().openUrl(url)
         else:
             index = int(index)
             commands = command.split("_")
@@ -79,7 +80,7 @@ class KanjiProfile(GenericProfile):
 
     def runCommand(self,cmd,definition):
         if cmd[0] == "copy":
-            QtGui.QApplication.clipboard().setText(u'{character}\t{kunyomi}\t{onyomi}\t{glossary}'.format(**definition))
+            QtWidgets.QApplication.clipboard().setText(u'{character}\t{kunyomi}\t{onyomi}\t{glossary}'.format(**definition))
         elif cmd[0] =="add":
             self.addFact(definition)
         elif cmd[0] == "addgroup":
@@ -90,7 +91,7 @@ class KanjiProfile(GenericProfile):
                     content = u"""### REGEXP ###
 .*[{0}]###v###
 ### SHUFFLE THIS TEXT ###""".format(definition['ongroup'])
-                    fp.write(content.encode('utf-8'))
+                    fp.write(content)
                     fp.close()
             d = dict()
             d['contentSample'] = definition['ongroup']
@@ -111,18 +112,18 @@ class KanjiProfile(GenericProfile):
     }
 
     def buildDefBody(self, definition, index, allowOverwrite):
-        links = '<a href="kanji_copy:{0}"><img src="qrc:///img/img/icon_copy_definition.png" align="right"></a>'.format(index)
+        links = """<a href='#' onclick='pycmd(\"{0}:{1}\")'><img src="qrc:///img/img/icon_copy_definition.png" align="right"/></a>""".format("kanji_copy", index)
         if (self.ankiIsFactValid('kanji', definition, index)):
-            links += '<a href="kanji_add:{0}"><img src="qrc:///img/img/icon_add_expression.png" align="right"></a>'.format(index)
+            links += """<a href='#' onclick='pycmd(\"{0}:{1}\")'><img src="qrc:///img/img/icon_add_expression.png" align="right"/></a>""".format("kanji_add", index)
 
         readings = ', '.join([definition['kunyomi'], definition['onyomi']])
         if definition['ongroup'] is not None:
-            ongroup = u"""<a style="text-decoration:none;" href="kanji_addgroup:{0}">{1}</a>""".format(index,definition['ongroup'])
+            ongroup = u"""<a style="text-decoration:none;" href="#" onclick='pycmd(\"{0}:{1}\")'>{2}</a>""".format("kanji_addgroup", index, definition['ongroup'])
         else:
             ongroup = ''
         html = u"""
             <span class="links">{0}</span>
-            <span class="expression"><a href="jisho:{1}">{1}</a><br></span>
+            <span class="expression"><a href="#" onclick='pycmd(\"jisho:{1}\")'>{1}</a><br></span>
             <span class="reading">[{2}]<br></span>
             <span class="glossary">{3}<br></span>
             <span class="ongroup">{4}<br></span>

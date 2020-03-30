@@ -15,11 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import BeautifulSoup
-import urllib2
-from PyQt4 import QtGui, QtCore
+import bs4 as BeautifulSoup
+from urllib.request import urlopen
+from PyQt5 import QtWidgets, QtCore
 from aqt.webview import AnkiWebView
-from profile import *
+from .profile import *
 from .. import reader_util
 from .. import preferences
 
@@ -50,11 +50,11 @@ class VocabularyProfile(GenericProfile):
         GenericProfile.__init__(self,reader)
         self.history = []
         self.currentIndex = 0
-        self.dockVocab = QtGui.QDockWidget(reader)
+        self.dockVocab = QtWidgets.QDockWidget(reader)
         self.dockVocab.setObjectName(fromUtf8("dockVocab"))
-        self.dockWidgetContents = QtGui.QWidget()
+        self.dockWidgetContents = QtWidgets.QWidget()
         self.dockWidgetContents.setObjectName(fromUtf8("dockWidgetContents"))
-        self.verticalLayout = QtGui.QVBoxLayout(self.dockWidgetContents)
+        self.verticalLayout = QtWidgets.QVBoxLayout(self.dockWidgetContents)
         self.verticalLayout.setObjectName(fromUtf8("verticalLayout"))
         self.previousExpression = None
         self.textField = AnkiWebView()
@@ -69,16 +69,16 @@ class VocabularyProfile(GenericProfile):
         reader.addDockWidget(QtCore.Qt.DockWidgetArea(2), self.dockVocab)
         self.dockVocab.visibilityChanged.connect(self.onVisibilityChanged)
         self.dockVocab.setWindowTitle(translate("MainWindowReader", "Vocabulary", None))
-        self.textField.setLinkHandler(self.onAnchorClicked)
+        self.textField.onBridgeCmd = self.onAnchorClicked
 
         # menu entries to toggle visibility of the vocabulary dock
-        self.actionToggleVocab = QtGui.QAction(reader)
+        self.actionToggleVocab = QtWidgets.QAction(reader)
         self.actionToggleVocab.setCheckable(True)
         self.actionToggleVocab.setObjectName("actionToggleVocab")
         self.actionToggleVocab.setText("&Vocabulary")
         self.actionToggleVocab.setToolTip("Toggle vocabulary")
         reader.menuView.insertAction(reader.menuView.actions()[2],self.actionToggleVocab)
-        QtCore.QObject.connect(self.actionToggleVocab, QtCore.SIGNAL("toggled(bool)"), self.dockVocab.setVisible)
+        self.actionToggleVocab.toggled.connect(self.dockVocab.setVisible)
         self.dockVocab.installEventFilter(self.reader.keyFilter)
 
     def updateSampleFromSelection(self):
@@ -107,10 +107,11 @@ class VocabularyProfile(GenericProfile):
         self.actionToggleVocab.setChecked(self.dockVocab.isVisible())
 
     def onAnchorClicked(self, url):
+        print(url)
         command, index = url.split(':')
         if command == "jisho":
             url = QtCore.QUrl(self.reader.preferences["linkToVocab"].format(index))
-            QtGui.QDesktopServices().openUrl(url)
+            QtWidgets.QDesktopServices().openUrl(url)
         elif command == "vocabulary_back":
             if len(self.history)>1:
                 self.history.pop()
@@ -156,7 +157,7 @@ class VocabularyProfile(GenericProfile):
         return lengthMatched
 
     def onShowDialogPreferences(self,dialog):
-        dialog.checkHideTranslation = QtGui.QCheckBox(dialog.tabAnki)
+        dialog.checkHideTranslation = QtWidgets.QCheckBox(dialog.tabAnki)
         dialog.checkHideTranslation.setObjectName(fromUtf8("checkHideTranslation"))
         dialog.verticalLayout_2.addWidget(dialog.checkHideTranslation)
         dialog.checkHideTranslation.setText(translate("DialogPreferences", "Hide translation, when an online dictionary entry is present", None))
@@ -176,13 +177,13 @@ class VocabularyProfile(GenericProfile):
                 self.reader.textContent.setPlainText(text +
                                                      definition.get("defs").replace(u"<br>",u"\n"))
 
-            QtGui.QApplication.clipboard().setText(result)
+            QtWidgets.QApplication.clipboard().setText(result)
         elif cmds[0] == "goo":
             prefix = "http://dictionary.goo.ne.jp"
             self.reader.link = prefix + "/srch/jn/" + definition['expression'] + "/m1u/"
-            page = urllib2.urlopen(
-              urllib2.Request(url=prefix + "/srch/jn/" + definition['expression'] + "/m1u/",
-              headers={'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11'})).read()
+            page = urlopen(
+              url=prefix + "/srch/jn/" + definition['expression'] + "/m1u/",
+              headers={'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11'}).read()
             soup = BeautifulSoup.BeautifulSoup(page)
             if not soup.find("div","contents-wrap-b"):
                 lis = soup.find("div",id="NR-main").find("div","contents-wrap-a-in search").find("ul","list-search-a").findAll("li")
@@ -196,12 +197,12 @@ class VocabularyProfile(GenericProfile):
                     if hiragana == definition['reading']:
                         a = li.find("a")
                         link = prefix + dict(a.attrs)["href"]
-                        page2 = urllib2.urlopen(
-                          urllib2.Request(url=link,
-                          headers={'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11'})).read()
+                        page2 = urlopen(
+                          url=link,
+                          headers={'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11'}).read()
                         soup = BeautifulSoup.BeautifulSoup(page2)
             if soup.find("div","contents-wrap-b"):
-                definition['goo'] = '\n'.join(map(unicode,soup.findAll("ol","list-data-b")))
+                definition['goo'] = '\n'.join(soup.findAll("ol","list-data-b"))
                 self.reader.preferences['onlineDicts']['goo'][definition['expression']+"["+(definition['reading'] or "")+"]"] = definition['goo']
                 self.updateDefinitions()
         else:
@@ -209,7 +210,7 @@ class VocabularyProfile(GenericProfile):
                 definition = definition.copy()
                 definition['summary'] = definition['reading']
                 definition['expression'] = definition['reading']
-                definition['reading'] = unicode()
+                definition['reading'] = ""
             if cmds[0] == "add":
                 self.addFact(definition)
             elif cmds[0] == "overwrite":
@@ -222,26 +223,26 @@ class VocabularyProfile(GenericProfile):
             summary = u'{expression}'.format(**definition)
 
         return {
-            'defs': definition.get("defs") or unicode(),
-            'refs': definition.get("refs") or unicode(),
+            'defs': definition.get("defs") or "",
+            'refs': definition.get("refs") or "",
             'expression': definition['expression'],
-            'hanja': definition.get('hanja') or unicode(),
-            'reading': definition.get('reading') or unicode(),
-            'glossary': definition.get('glossary') or unicode(),
-            'gender': definition.get('gender') or unicode(),
-            'language': definition.get('language') or unicode(),
-            'sentence': definition.get('sentence') or unicode(),
-            'traditional': definition.get('traditional') or unicode(),
-            'line': definition.get('line') or unicode(),
-            'filename': definition.get('filename') or unicode(),
-            'goo': definition.get('goo') or unicode(),
-            'term': definition.get('term') or unicode(),
-            'source': definition.get('source') or unicode(),
+            'hanja': definition.get('hanja') or "",
+            'reading': definition.get('reading') or "",
+            'glossary': definition.get('glossary') or "",
+            'gender': definition.get('gender') or "",
+            'language': definition.get('language') or "",
+            'sentence': definition.get('sentence') or "",
+            'traditional': definition.get('traditional') or "",
+            'line': definition.get('line') or "",
+            'filename': definition.get('filename') or "",
+            'goo': definition.get('goo') or "",
+            'term': definition.get('term') or "",
+            'source': definition.get('source') or "",
             'summary': summary
         }
 
     def buildDefBody(self, definition, index, allowOverwrite):
-        reading = unicode()
+        reading = ""
         if(definition.get('language') == 'Japanese' and (definition['expression']+"["+(definition['reading'] or "")+"]") in self.reader.preferences['onlineDicts']['goo']):
             definition['goo'] = self.reader.preferences['onlineDicts']['goo'][definition['expression']+"["+(definition['reading'] or "")+"]"]
 
@@ -251,16 +252,16 @@ class VocabularyProfile(GenericProfile):
                 reading += u' (trad.)'
             reading += '</span>'
 
-        rules = unicode()
+        rules = ""
         if definition.get('rules'):
             rules = ' &lt; '.join(definition['rules'])
             rules = '<span class="rules">({0})<br></span>'.format(rules)
 
-        gender = unicode()
+        gender = ""
         if definition.get('gender'):
             gender = '<span class="gender">{0}<br></span>'.format(definition['gender'])
 
-        links = '<a href="vocabulary_copy:{0}"><img src="qrc:///img/img/icon_copy_definition.png" align="right"></a>'.format(index)
+        links = """<a href='#' onclick='pycmd(\"{0}:{1}\")'><img src="qrc:///img/img/icon_copy_definition.png" align="right"/></a>""".format("vocabulary_copy", index)
         markupExp = self.markup(definition)
         defReading = definition.copy()
         if defReading.get('reading'):
@@ -268,20 +269,20 @@ class VocabularyProfile(GenericProfile):
             del defReading['reading']
         markupReading = self.markup(defReading)
         if self.ankiIsFactValid('vocabulary', markupExp, index):
-            links += u'<a href="vocabulary_add:{0}"><img src="qrc:///img/img/icon_add_expression.png" align="right"></a>'.format(index)
+            links += """<a href='#' onclick='pycmd(\"{0}:{1}\")'><img src="qrc:///img/img/icon_add_expression.png" align="right"/></a>""".format("vocabulary_add", index)
         else:
             if allowOverwrite:
-                links += u'<a href="vocabulary_overwrite:{0}"><img src="qrc:///img/img/icon_overwrite_expression.png" align="right"></a>'.format(index)
+                links += """<a href='#' onclick='pycmd(\"{0}:{1}\")'><img src="qrc:///img/img/icon_overwrite_expression.png" align="right"/></a>""".format("vocabulary_write", index)
         if markupReading is not None and definition.get('language') == 'Japanese':
             if self.ankiIsFactValid('vocabulary', markupReading, index):
-                links += u'<a href="vocabulary_add_reading:{0}"><img src="qrc:///img/img/icon_add_reading.png" align="right"></a>'.format(index)
+                links += """<a href='#' onclick='pycmd(\"{0}:{1}\")'><img src="qrc:///img/img/icon_add_reading.png" align="right"/></a>""".format("vocabulary_add_reading", index)
             elif markupExp is not None and markupReading['summary'] != markupExp['summary']:
                 if allowOverwrite:
-                    links += u'<a href="vocabulary_overwrite_reading:{0}"><img src="qrc:///img/img/icon_overwrite_reading.png" align="right"></a>'.format(index)
+                    links += """<a href='#' onclick='pycmd(\"{0}:{1}\")'><img src="qrc:///img/img/icon_overwrite_reading.png" align="right"/></a>""".format("vocabulary_overwrite_reading", index)
 
         def glossary(hide):
             if hide:
-                return u"""<a onclick='document.getElementById("glossary{1}").style.display="block";this.style.display="none"' href="javascript:void(0);">[Show English]<br></a><span class="glossary" id="glossary{1}" style="display:none;">{0}<br></span>""".format(definition['glossary'],index)
+                return u"""<a href='#' onclick='document.getElementById("glossary{1}").style.display="block";this.style.display="none"' href="javascript:void(0);">[Show English]<br></a><span class="glossary" id="glossary{1}" style="display:none;">{0}<br></span>""".format(definition['glossary'],index)
             else:
                 return u'<span class="glossary" id="glossary">{0}<br></span>'.format(definition['glossary'])
         foundOnlineDictEntry = False
@@ -308,9 +309,9 @@ class VocabularyProfile(GenericProfile):
             expression = u'<span class="expression">{0}</span>'.format(definition['expression'])
             reading = reading + '<br>'
         html = u"""
-            <span class="links">{0}</span>
             {1}
             {2}
+            <span class="links">{0}</span>
             {3}
             {4}
             {5}
