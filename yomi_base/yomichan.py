@@ -5,7 +5,7 @@ from urllib.request import urlopen
 
 import importlib
 import aqt
-from aqt.downloader import download
+# from aqt.downloader import download
 from aqt.utils import showInfo
 from anki.hooks import addHook
 
@@ -22,6 +22,8 @@ class Yomichan:
         self.languages = dict()
         self.preferences = Preferences()
         self.preferences.load()
+        ret = self.loadLanguages()
+        """
         if not self.loadLanguages():
             def downloadDictionaries():
                 showInfo(_("No Yomichan dictionaries found\nDownloading now"))
@@ -31,7 +33,7 @@ class Yomichan:
                 data, fname = ret
                 aqt.mw.addonManager.install(data, fname)
                 aqt.mw.progress.finish()
-            # addHook('profileLoaded',downloadDictionaries)
+            # addHook('profileLoaded',downloadDictionaries)"""
         self.loadSubscriptions()
 
     def loadLanguages(self):
