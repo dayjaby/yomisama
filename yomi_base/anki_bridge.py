@@ -454,7 +454,8 @@ def searchYomichanDeck(val):
 
 def onSearch(cmds):
     def findByYomichanFile(oldfn):
-        def inner(val,args):
+        def inner(val, args=None):
+            val, args = val
             if val.split("::")[0]=="Yomichan":
                 return searchYomichanDeck(val)
             else:

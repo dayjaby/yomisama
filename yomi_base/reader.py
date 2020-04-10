@@ -261,7 +261,7 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
 
 
     def onActionOpen(self):
-        filename = QtWidgets.QFileDialog.getOpenFileName(
+        filename, filt = QtWidgets.QFileDialog.getOpenFileName(
             parent=self,
             caption='Select a file to open',
             directory=self.state.filename,
@@ -732,7 +732,8 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
             return
 
         for filename in filenames:
-            self.menuOpenRecent.addAction(filename, lambda f=filename: self.openFile(f))
+            menu_open_action = self.menuOpenRecent.addAction(filename) # , lambda f=filename: self.openFile(f))
+            menu_open_action.triggered.connect(lambda _: self.openFile(filename))
 
         self.menuOpenRecent.addSeparator()
         self.menuOpenRecent.addAction('Clear file history', self.clearRecentFiles)

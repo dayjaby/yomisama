@@ -7,7 +7,7 @@ import re
 import json
 
 class FileState:
-    def __init__(self,fn,stripReadings,languages=[],profiles={}):
+    def __init__(self, fn, stripReadings, languages=[], profiles={}):
         self.alias = dict()
         self.languages = languages
         self.profiles = dict()
@@ -41,7 +41,7 @@ class FileState:
             self.basename = os.path.basename(self.name)
             self.load()
 
-    def count(self,name):
+    def count(self, name):
         cnt = 0
         for k,profile in self.profiles.items():
             cnt += len(profile[name])
@@ -58,7 +58,7 @@ class FileState:
     def resetTimer(self):
         self.timerStarted = time.time()
 
-    def getExportJSON(self,txt):
+    def getExportJSON(self, txt):
         def access(x,y):
             if y not in x or x[y] is None:
                 return u''
@@ -82,7 +82,7 @@ class FileState:
             data['profiles'][p] = profileData
         return json.dumps(data,sort_keys=True,indent=4,ensure_ascii=False)
 
-    def getExportVocabularyList(self,profile):
+    def getExportVocabularyList(self, profile):
         profile = self.profiles[profile]
         def access(x,y):
             if y not in x or x[y] is None:
@@ -102,23 +102,23 @@ class FileState:
         else:
             return u'### ALIAS ###\n' + u'\n'.join([eng + self.sep + jpn for eng,jpn in self.alias.items()]) + u'\n'
 
-    def overwriteVocabulary(self,profile,value,card):
+    def overwriteVocabulary(self, profile, value, card):
         profile = self.profiles[profile]
         profile['wordsAll'][value] = card
         if value in profile['wordsBad']:
             profile['wordsBad'][value] = card
 
-    def addVocabulary(self,profile,value,card,addToBadListToo = True):
+    def addVocabulary(self, profile, value, card, addToBadListToo=True):
         profile = self.profiles[profile]
         profile['wordsAll'][value] = card
         if addToBadListToo:
             profile['wordsBad'][value] = card
 
-    def addMarkup(self,profile,value,markup):
+    def addMarkup(self, profile, value, markup):
         profile = self.profiles[profile]
         profile['wordsMarkup'][value] = markup
 
-    def findVocabulary(self,sched,allCards,needContent=True):
+    def findVocabulary(self, sched, allCards, needContent=True):
         lines = self.content.splitlines()
         state = "text"
         currentProfile = None

@@ -11,3 +11,4 @@ yomi_base/languages/spanish/es-eng.txt
 *.db
 *.u8
 .idea
+tags
