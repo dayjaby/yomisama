@@ -418,7 +418,12 @@ def onBeforeStateChange(state, oldState, *args):
                 yomichanInstance.window.showMaximized()
     elif state == 'deckBrowser':
         if not getattr(aqt.mw.col.sched,"earlyAnswerCard",None):
-            aqt.mw.col.sched = Scheduler(aqt.mw.col,yomichanInstance.getFileCache,scheduleVariationPercent = yomichanInstance.preferences['scheduleVariationPercent'],weekDays = yomichanInstance.preferences['weekDays'])
+            sched_variation_percent = yomichanInstance.preferences["scheduleVariationPercent"]
+            week_days = yomichanInstance.preferences["weekDays"]
+            aqt.mw.col.sched = Scheduler(aqt.mw.col,
+                yomichanInstance.getFileCache,
+                scheduleVariationPercent=sched_variation_percent,
+                weekDays=week_days)
         if yomichanInstance.preventReload:
             yomichanInstance.preventReload = False
         else:

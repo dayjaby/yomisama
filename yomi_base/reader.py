@@ -247,11 +247,13 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
 
         
     def moveEvent(self, event):
-        self.preferences['windowPosition'] = event.pos().x(), event.pos().y()
+        if hasattr(self, 'windowPosition'):
+            self.preferences['windowPosition'] = event.pos().x(), event.pos().y()
 
 
     def resizeEvent(self, event):
-        self.preferences['windowSize'] = event.size().width(), event.size().height()
+        if hasattr(self, 'windowSize'):
+            self.preferences['windowSize'] = event.size().width(), event.size().height()
 
     def getFileFilter(self):
         return ';;'.join(
@@ -471,7 +473,7 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
                     content+= self.currentFile.getAliasList()
                     content+= self.currentFile.getExportVocabularyList('vocabulary') + u'\n'
                     content+= self.currentFile.getExportVocabularyList('sentence') + u'\n'
-                    content+= self.currentFile.getExportVocabularyList('movie') + u'\n'
+                    # content+= self.currentFile.getExportVocabularyList('movie') + u'\n'
                     content+= self.currentFile.getExportVocabularyList('kanji')
                 fp.write(content)
                 fp.close()

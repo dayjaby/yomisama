@@ -77,7 +77,8 @@ class DeckManager(anki.decks.DeckManager):
                 if os.path.isdir(completePath):
                     shutil.rmtree(completePath)
                 elif os.path.isfile(completePath):
-                    os.remove(completePath)
+                    print("Remove {} failed. File removal disabled".format(completePath))
+                    # os.remove(completePath)
                     if name in self.filecache:
                         del self.filecache[name]
             if len(path) > 1 or path[0] != u'Yomichan':

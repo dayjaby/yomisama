@@ -68,7 +68,8 @@ class FileState:
         data = dict()
         data['text'] = txt
         data['profiles'] = dict()
-        for p in ['vocabulary','sentence','movie','kanji']:
+        # for p in ['vocabulary','sentence','movie','kanji']:
+        for p in ['vocabulary','sentence','kanji']:
             profile = self.profiles[p]
             allowedTags = profile["allowedTags"][:]
             if 'filename' in allowedTags:
