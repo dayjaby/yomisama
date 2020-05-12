@@ -42,6 +42,8 @@ class MPlayerKeyFilter(QtCore.QObject):
     profile = None
 
     def eventFilter(self, unused, event):
+        if not hasattr(self, "mplayer"):
+            return False
         mp = self.profile.mplayer
         if event.type() != QtCore.QEvent.KeyPress or mp is None:
             return False
