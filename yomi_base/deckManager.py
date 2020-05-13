@@ -15,7 +15,6 @@ class DeckManager(anki.decks.DeckManager):
     def __init__(self,col,filecache):
         anki.decks.DeckManager.__init__(self,col)
         self.decks = col.decks.decks
-        self.dconf = col.decks.dconf
         self.changed = col.decks.changed
         self.filecache = filecache
 
