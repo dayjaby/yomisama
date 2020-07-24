@@ -18,7 +18,6 @@ from .errorHandler import ErrorHandler
 # from .anki_server import AnkiConnect
 from . import profiles
 from .constants import extensions
-from anki.models import defaultModel,defaultField,defaultTemplate
 from anki.utils import ids2str, intTime
 
 
