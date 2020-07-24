@@ -5,7 +5,7 @@ import math
 import datetime
 import random
 import time
-
+from anki.rsbackend import DeckTreeNode
 
 
 class Scheduler(anki.sched.Scheduler):
@@ -68,9 +68,10 @@ class Scheduler(anki.sched.Scheduler):
         due = card.odue if card.odid else card.due
         return max(0, due - self.today)
         
-    def deckDueList(self):
-        data = anki.sched.Scheduler.deckDueList(self)
+    def deck_due_tree(self, top_deck_id: int = 0):
+        data = anki.sched.Scheduler.deck_due_tree(self, top_deck_id)
         filecache = self.filecache()
+        deck_parents = dict()
         for deck in filecache:
             id = self.col.decks.id(deck,create=False)
             if id is not None:
@@ -83,6 +84,34 @@ class Scheduler(anki.sched.Scheduler):
                     else:
                         due = int(filecache[deck].dueness)
                     new = filecache[deck].count('wordsNotFound')
-                data.append([deck, id, due, 0, new])
+                path = deck.split("::")
+                parent_path = "::".join(path[:-1])
+                # try to find parent in the already existing tree
+                node = data
+                for child_name in path:
+                    found = False
+                    for child in node.children:
+                        if child_name == child.name:
+                            node = child
+                            found = True
+                            break
+                    if not found:
+                        raise Exception("Could not find child: {} in {}".format(child_name, deck))
+                parent = node
+
+                node.review_count = due
+                node.learn_count = 0
+                node.new_count = new
+
+                """if parent_path in deck_parents:
+                    parent = deck_parents[parent_path]
+                elif parent_path == "Yomisama" or parent_path == "Yomichan":
+                    parent = data
+                else:
+                    raise Exception("Invalid tree path: {}".format(deck))"""
+
+                """node = DeckTreeNode(name=path[-1], deck_id=id, review_count=due, learn_count=0, new_count=new)
+                parent.children.append(node)
+                deck_parents[deck] = node"""
                 self.dueCache[deck] = due
         return data
