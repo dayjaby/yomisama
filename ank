@@ -1,0 +1,38 @@
+#!/bin/sh
+
+ANKICONNECT=localhost:8765
+
+while true
+do
+	curl -s $ANKICONNECT -X POST -d '{"action": "guiCurrentCard", "version": 6}' | jq -r '.result.fields.v.value'
+	FURIGANA=$(curl -s $ANKICONNECT -X POST -d '{"action": "guiCurrentCard", "version": 6}' | jq -r '.result.fields."Vocabulary-Furigana".value')
+	WITH_PITCH=$(echo $FURIGANA | sed -E 's/.*\[(.*)\]/\1/' | sed -E 's/\s//g')
+	NO_PITCH=$(echo $WITH_PITCH | sed -E 's/[0-9]|\s//g')
+
+	curl -s $ANKICONNECT -X POST -d '{"action": "guiShowAnswer", "version": 6}' > /dev/null
+	read INP
+
+	if [ "$INP" = "x" ]; then
+		ENGLISH=$(curl -s $ANKICONNECT -X POST -d '{"action": "guiCurrentCard", "version": 6}' | jq -r '.result.fields."Vocabulary-English".value')
+		echo "Translation: $ENGLISH"
+		echo "Correct pinyin: $WITH_PITCH"
+		curl -s $ANKICONNECT -X POST -d '{"action": "guiAnswerCard", "version": 6, "params": {"ease": 1}}' > /dev/null
+	else
+		INP_NO_PITCH=$(echo $INP | sed -E 's/[0-9]|\s//g')
+
+		if [ "$INP" = "$WITH_PITCH" ]; then
+			WRONG_ONCE=$(curl -s $ANKICONNECT -X POST -d '{"action": "guiCurrentCard", "version": 6}' | jq -r '.result.nextReviews[1][0:1]')
+			if [ "$WRONG_ONCE" = "<" ]; then
+				curl -s $ANKICONNECT -X POST -d '{"action": "guiAnswerCard", "version": 6, "params": {"ease": 2}}' > /dev/null
+			else
+				curl -s $ANKICONNECT -X POST -d '{"action": "guiAnswerCard", "version": 6, "params": {"ease": 3}}' > /dev/null
+			fi
+		elif [ "$INP_NO_PITCH" = "$NO_PITCH" ]; then
+			echo "Correct pitch: $WITH_PITCH"
+			curl -s $ANKICONNECT -X POST -d '{"action": "guiAnswerCard", "version": 6, "params": {"ease": 2}}' > /dev/null
+		else
+			echo "Wrong. Correct answer: $WITH_PITCH"
+			curl -s $ANKICONNECT -X POST -d '{"action": "guiAnswerCard", "version": 6, "params": {"ease": 1}}' > /dev/null
+		fi
+	fi
+done
