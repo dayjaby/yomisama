@@ -1,83 +1,92 @@
 {
-    "enableAnkiConnect": true,
+    "allowEditing": true,
     "bgColor": 4294967295,
     "checkForUpdates": true,
+    "chinese": true,
+    "enableAnkiConnect": true,
     "fgColor": 4278190080,
-    "fontFamily": "Arial",
+    "firstRun": false,
+    "fontFamily": "Liberation Sans",
     "fontSize": 12,
-    "rememberTextContent": false,
+    "french": false,
+    "german": false,
+    "hideTranslation": true,
+    "japanese": false,
+    "japaneseDict": "dictionary.db",
+    "korean": false,
+    "linkToKanji": "http://jisho.org/search/#kanji {0}",
+    "linkToVocab": "http://jisho.org/search/{0}",
     "loadRecentFile": false,
+    "lookupKey": 3,
     "maxResults": 20,
     "onlineDicts": {
-        "goo": {
-        }
+        "goo": {}
     },
     "profiles": {
         "kanji": {
-            "visible": true,
-            "deck": "YomichanCards", 
+            "deck": "YomichanCards",
             "fields": {
-                "Kanji": "{character}", 
-                "Onyomi": "{onyomi}", 
-                "Kunyomi": "{kunyomi}", 
-                "Glossary": "{glossary}"
-            }, 
-            "model": "YomichanKanji"
-        },
-        "vocabulary": {
-            "visible": true,
-            "deck": "YomichanCards", 
-            "fields": {
-                "Examples+": "{line} (<a href=\"file:///{filename}\">File</a>)", 
-                "Expression": "{line}", 
-                "Reading": "", 
-                "Sentence-English": "", 
-                "Video": "", 
-                "Vocabulary-English": "{glossary}", 
-                "Vocabulary-Furigana": "{summary}", 
-                "v": "{expression}"
-            }, 
-            "model": "Yomichan"
+                "Glossary": "{glossary}",
+                "Kanji": "{character}",
+                "Kunyomi": "{kunyomi}",
+                "Onyomi": "{onyomi}"
+            },
+            "model": "YomichanKanji",
+            "visible": true
         },
         "sentence": {
-            "visible": true,
-            "deck": "YomichanCards", 
+            "deck": "YomichanCards",
             "fields": {
-                "Expression": "{t0}", 
-                "Translation": "{t1}", 
-                "Reading": ""
-            }, 
-            "model": "YomichanTranslation"
+                "Expression": "{t0}",
+                "Reading": "",
+                "Translation": "{t1}"
+            },
+            "model": "YomichanSentence"
+        },
+        "vocabulary": {
+            "deck": "YomichanCards",
+            "fields": {
+                "Examples+": "{line} (<a href=\"file:///{filename}\">File</a>)",
+                "Expression": "{line}",
+                "Reading": "",
+                "Sentence-English": "",
+                "Video": "",
+                "Vocabulary-English": "{glossary}",
+                "Vocabulary-Furigana": "{summary}",
+                "v": "{expression}"
+            },
+            "model": "Yomichan"
         }
-
-    },    
+    },
+    "recentFiles": [
+        {
+            "path": "/home/david/.local/share/Anki2/User 1/collection.media/Chinese/Seventh Day/001.txt",
+            "position": 249
+        }
+    ],
+    "rememberTextContent": false,
+    "scanLength": 16,
+    "scheduleVariationPercent": 0,
     "sources": [
         {
             "link": "http://dictionary.goo.ne.jp/freewordsearcher.html?MT={expression}&mode=1&id=top&kind=jn"
         }
     ],
-    "subscriptions": [
-    ],
-    "scheduleVariationPercent": 0,
-    "recentFiles": [],
-    "textContent": "",
-    "scanLength": 16,
+    "spanish": false,
     "stripReadings": false,
+    "subscriptions": [],
     "tags": [],
-    "wordWrap": false,
-    "allowEditing": true,
-    "firstRun": true,
-    "unlockVocab":true,
-    "hideTranslation":true,
-    "japanese":false,
-    "japaneseDict":"dictionary.db",
-    "korean":false,
-    "chinese":false,
-    "german":false,
-    "spanish":false,
-    "french":false,
-    "lookupKey":1,
-    "linkToKanji":"http://jisho.org/search/#kanji {0}",
-    "linkToVocab":"http://jisho.org/search/{0}",
-    "weekDays": [true,true,true,true,true,true,true]
+    "textContent": "",
+    "unlockVocab": true,
+    "weekDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+    ],
+    "windowState": "b'AAAA/wAAAAD9AAAAAgAAAAAAAAESAAAC+fwCAAAAAfsAAAAQAGQAbwBjAGsAQQBuAGsAaQEAAAA1AAAC+QAAAOcA////AAAAAQAAAYUAAAL5/AIAAAAD+wAAABIAZABvAGMAawBLAGEAbgBqAGkBAAAANQAAAPoAAAAlAP////sAAAASAGQAbwBjAGsAVgBvAGMAYQBiAQAAATUAAAD5AAAAJQD////7AAAAGABkAG8AYwBrAFMAZQBuAHQAZQBuAGMAZQEAAAI0AAAA+gAAACUA////AAADVQAAAvkAAAAEAAAABAAAAAgAAAAI/AAAAAEAAAACAAAAAQAAAA4AdABvAG8AbABCAGEAcgEAAAAA/////wAAAAAAAAAA'",
+    "wordWrap": true
 }

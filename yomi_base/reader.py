@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from PyQt5 import QtWidgets, QtCore, QtGui
-from anki.utils import ids2str, intTime
 import os
 import io
 import aqt
@@ -177,12 +176,6 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
 
 
     def applyPreferences(self):
-        if self.preferences['windowState'] is not None:
-            self.restoreState(QtCore.QByteArray.fromBase64(self.preferences['windowState'].encode("utf-8")))
-        if self.preferences['windowPosition'] is not None:
-            self.move(QtCore.QPoint(*self.preferences['windowPosition']))
-        if self.preferences['windowSize'] is not None:
-            self.resize(QtCore.QSize(*self.preferences['windowSize']))
 
         self.comboTags.addItems(self.preferences['tags'])
         self.applyPreferencesContent()
@@ -190,11 +183,18 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
         if self.preferences['firstRun']:
             QtWidgets.QMessageBox.information(
                 self,
-                'Yomichan',
-                'This may be the first time you are running Yomichan.\nPlease take some time to configure this extension.'
+                'Yomisama',
+                'This may be the first time you are running Yomisama.\nPlease take some time to configure this extension.'
             )
 
             self.onActionPreferences()
+
+        if self.preferences['maximized'] == 'yes':
+            self.showMaximized()
+        if self.preferences['windowState'] is not None:
+            self.restoreState(QtCore.QByteArray.fromBase64(self.preferences['windowState'].encode("utf-8")))
+        if self.preferences['windowGeometry'] is not None:
+            self.restoreGeometry(QtCore.QByteArray.fromBase64(self.preferences['windowGeometry'].encode("utf-8")))
 
     def applyPreferencesContent(self):
         palette = self.textContent.palette()
@@ -221,6 +221,9 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
 
     def closeEvent(self, event):
         self.preferences['windowState'] = str(self.saveState().toBase64())
+        self.preferences['windowGeometry'] = str(self.saveGeometry().toBase64())
+        self.preferences['maximized'] = "yes" if self.isMaximized() else "no"
+
         self.closeFile()
         self.preferences.save()
 
@@ -232,9 +235,6 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
             
         for key,profile in self.profiles.items():
             profile.close()
-
-            
-
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():

@@ -17,7 +17,7 @@ def update(d, u):
 
 class Preferences(object):
     def __init__(self):
-        self.filename = os.path.expanduser('~/.yomichan.json')
+        self.filename = os.path.expanduser('~/.config/yomisama.json')
         self.defaults = os.path.join(os.path.dirname(__file__), 'defaults.json')
         self.settings = dict()
 

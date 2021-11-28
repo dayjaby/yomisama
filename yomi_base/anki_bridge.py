@@ -18,13 +18,13 @@ from .errorHandler import ErrorHandler
 # from .anki_server import AnkiConnect
 from . import profiles
 from .constants import extensions
-from anki.utils import ids2str, intTime
+from anki.utils import ids2str, int_time
 
 
 class Anki:
     def createYomichanModel(self):
         models = self.collection().models
-        if u'YomichanSentence' not in models.allNames():
+        if models.by_name(u'YomichanSentence') is None:
             model = models.new(u'YomichanSentence')
             model['css'] = """\
 .card {
@@ -39,14 +39,13 @@ class Anki:
 .card2 { background-color: #efff7f; }
             """
             for field in [u'Expression',u'Translation',u'Reading']:
-                models.addField(model,models.newField(field))
-            template = models.newTemplate(u'Production')
+                models.addField(model,models.new_field(field))
+            template = models.new_template(u'Production')
             template['qfmt'] = u'{{Translation}}'
             template['afmt'] = u'{{FrontSide}}<hr>{{Expression}}'
             models.addTemplate(model,template)
             models.add(model)
-            models.flush()
-        if u'YomichanKanji' not in models.allNames():
+        if models.by_name(u'YomichanKanji') is None:
             model = models.new(u'YomichanKanji')
             model['css'] = """\
 .card {
@@ -61,12 +60,12 @@ class Anki:
 .card2 { background-color: #ffafaf; }
             """
             for field in [u'Kanji',u'Onyomi',u'Kunyomi',u'Glossary',u'Words']:
-                models.addField(model,models.newField(field))
-            template = models.newTemplate(u'Recognition')
+                models.addField(model,models.new_field(field))
+            template = models.new_template(u'Recognition')
             template['qfmt'] = u'{{Kanji}}'
             template['afmt'] = u'{{FrontSide}}<hr>{{Glossary}}<br>{{Onyomi}} {{Kunyomi}}'
             models.addTemplate(model,template)
-            template = models.newTemplate(u'Production')
+            template = models.new_template(u'Production')
             template['qfmt'] = u"""<span id="glossary">{{Glossary}}</span><br>{{Onyomi}} {{Kunyomi}}<br><br>
 <span id="words">{{furigana:Words}}</span>
 <script>
@@ -77,8 +76,7 @@ document.getElementById("words").innerHTML = document.getElementById("words").in
             template['afmt'] = u'{{FrontSide}}<hr>{{Kanji}}'
             models.addTemplate(model,template)
             models.add(model)
-            models.flush()
-        if u'Yomichan' not in models.allNames():
+        if models.by_name(u'Yomichan') is None:
             model = models.new(u'Yomichan')
             model['css'] = """\
 .card {
@@ -93,17 +91,17 @@ document.getElementById("words").innerHTML = document.getElementById("words").in
 .card2 { background-color: #efff7f; }
             """
             for field in [u'Vocabulary-Furigana',u'v',u'Vocabulary-English',u'Expression',u'Reading',u'Sentence-English',u'Video',u'Examples+']:
-                models.addField(model,models.newField(field))
-            template = models.newTemplate(u'Recognition')
+                models.addField(model,models.new_field(field))
+            template = models.new_template(u'Recognition')
             template['qfmt'] = u'<span style="font-size: 60px">{{v}}</span><br><br><br>\n<span style="font-size: 20px; font-family: \uff2d\uff33 \u30b4\u30b7\u30c3\u30af;">{{kanji:Reading}}</span>\n{{^Reading}}\n<span style="font-size: 20px;">{{kanji:Expression}}</span>\n{{/Reading}}'
             template['afmt'] = u'<span style="font-size: 50px; font-family: \uff2d\uff33 \u30b4\u30b7\u30c3\u30af;">{{furigana:Vocabulary-Furigana}}</span><br>\n{{^Vocabulary-Furigana}}\n<span style="font-size: 30px"></span><br>\n<span style="font-size: 60px">{{v}}</span><br><br>\n{{/Vocabulary-Furigana}}\n<span style="font-size: 20px; font-family: \uff2d\uff33 \u30b4\u30b7\u30c3\u30af;">{{furigana:Reading}}</span><br>\n{{^Reading}}\n<span style="font-size: 20px;">{{furigana:Expression}}</span>\n{{/Reading}}\n<hr id=answer>\n<img src="{{Video}}"/><br>\n<span style="font-size: 12px; ">{{Vocabulary-English}}</span> <span style="font-size: 15px; color: #5555ff"></span><br>\n<br>\n<span style="font-size: 15px; ">{{Sentence-English}}</span>\n'
             models.addTemplate(model,template)
             models.add(model)
-            models.flush()
+
+        # Create decks if non-existing
         decks = self.collection().decks
-        if u'Yomichan' not in decks.allNames():
-            decks.id(u'Yomichan')
-            decks.id(u'YomichanCards')
+        decks.id(u'Yomichan')
+        decks.id(u'YomichanCards')
             
             
     def addNote(self, deckName, modelName, fields, tags=list()):
@@ -121,11 +119,11 @@ document.getElementById("words").innerHTML = document.getElementById("words").in
 
 
     def createNote(self, deckName, modelName, fields, tags=list()):
-        model = self.models().byName(modelName)
+        model = self.models().by_name(modelName)
         if model is None:
             return None
 
-        deck = self.decks().byName(deckName)
+        deck = self.decks().by_name(deckName)
         if deck is None:
             return None
         note = anki.notes.Note(self.collection(), model)
@@ -153,7 +151,7 @@ document.getElementById("words").innerHTML = document.getElementById("words").in
         
         
     def getCards(self, modelName, onlyFirst = False):
-        model = self.models().byName(modelName)
+        model = self.models().by_name(modelName)
         if model is not None:
             modelid = int(model[u"id"])
             query = "select " + ("min(c.id)" if onlyFirst else "c.id")
@@ -166,10 +164,10 @@ document.getElementById("words").innerHTML = document.getElementById("words").in
             return []
     
     def getCardsByNote(self, modelName, key, value):
-        return self.collection().findCards(key + u':"' + value + u'" note:' + modelName)
+        return self.collection().find_cards(key + u':"' + value + u'" note:' + modelName)
 
     def getCardsByNoteAndNotInDeck(self, modelName, values, did):
-        model = self.models().byName(modelName)
+        model = self.models().by_name(modelName)
         modelid = int(model[u"id"])
         query = u"select c.id from cards c "
         query+= u"join notes n on (c.nid = n.id) " 
@@ -181,7 +179,7 @@ document.getElementById("words").innerHTML = document.getElementById("words").in
         
     
     def getModelKey(self, modelName):
-        model = self.collection().models.byName(modelName)
+        model = self.collection().models.by_name(modelName)
         if model is None:
             return None
         frstfld = model[u"flds"][0]
@@ -189,13 +187,15 @@ document.getElementById("words").innerHTML = document.getElementById("words").in
         
 
     def startEditing(self):
-        self.window().requireReset()
-
+        # TODO: Maybe replace with CollectionOp?
+        # self.window().requireReset()
+        pass
 
     def stopEditing(self):
         if self.collection():
-            self.window().maybeReset()
-
+            pass
+            # TODO: Maybe replace with CollectionOp?
+            # self.window().maybeReset()
 
     def window(self):
         return aqt.mw
@@ -214,11 +214,11 @@ document.getElementById("words").innerHTML = document.getElementById("words").in
 
 
     def modelNames(self):
-        return self.models().allNames()
+        return [model.name for model in self.models().all_names_and_ids()]
 
 
     def modelFieldNames(self, modelName):
-        model = self.models().byName(modelName)
+        model = self.models().by_name(modelName)
         if model is not None:
             return [field['name'] for field in model['flds']]
 
@@ -228,7 +228,7 @@ document.getElementById("words").innerHTML = document.getElementById("words").in
 
 
     def deckNames(self):
-        return self.decks().allNames()
+        return [deck.name for deck in self.decks().all_names_and_ids()]
     
     def moveCards(self,cardKeys,model,deck):
         key = self.getModelKey(model)                                                  
@@ -240,12 +240,13 @@ document.getElementById("words").innerHTML = document.getElementById("words").in
         deck = self.collection().decks.get(did)
         self.window().checkpoint(_("Update cards"))
         if not deck['dyn']:
-            mod = intTime()
+            mod = int_time()
             usn = self.collection().usn()
             scids = ids2str(cids)
             self.collection().sched.remFromDyn(cids)
             self.collection().db.execute("""update cards set usn=?, mod=?, did=? where id in """ + scids, usn, mod, did)
-        self.window().requireReset()
+        # TODO: Maybe replace with CollectionOp?
+        # self.window().requireReset()
 
 
 class YomichanPlugin(Yomichan):
@@ -331,6 +332,7 @@ class YomichanPlugin(Yomichan):
                   # create deck if necessary
                   self.anki.collection().decks.id(fullPath,create=True)
                   fileState.findVocabulary(self.anki.collection().sched,self.allCards,needContent=False)
+
             if os.path.isdir(yomimedia):
                 for root,dirs,files in os.walk(yomimedia):
                     relDir = os.path.relpath(root,mediadir)
@@ -368,7 +370,7 @@ def onBeforeStateChange(state, oldState, *args):
         aqt.mw.errorHandler = ErrorHandler(aqt.mw)
     if state == 'overview':
         did = aqt.mw.col.decks.selected()
-        name = aqt.mw.col.decks.nameOrNone(did)
+        name = aqt.mw.col.decks.name_if_exists(did)
         path = name.split(u'::')
         if len(path) > 0 and path[0] == u'Yomichan':
             yomichanInstance.onShowRequest()
@@ -419,6 +421,9 @@ def onBeforeStateChange(state, oldState, *args):
         if not getattr(aqt.mw.col.sched,"earlyAnswerCard",None):
             sched_variation_percent = yomichanInstance.preferences["scheduleVariationPercent"]
             week_days = yomichanInstance.preferences["weekDays"]
+            def deck_due_tree(*args, **kwargs):
+                raise Exception("deck_due_tree")
+            aqt.mw.col.sched.deck_due_tree = deck_due_tree
             aqt.mw.col.sched = Scheduler(aqt.mw.col,
                 yomichanInstance.getFileCache,
                 scheduleVariationPercent=sched_variation_percent,
@@ -427,7 +432,7 @@ def onBeforeStateChange(state, oldState, *args):
             yomichanInstance.preventReload = False
         else:
             yomichanInstance.loadAllTexts()
-        yomichanDeck = aqt.mw.col.decks.byName(u'Yomichan')
+        yomichanDeck = aqt.mw.col.decks.by_name(u'Yomichan')
         for name,id in aqt.mw.col.decks.children(yomichanDeck['id']):
             if name not in yomichanInstance.fileCache and aqt.mw.col.decks.get(id)['id']!=1:
                 aqt.mw.col.decks.rem(id)
@@ -435,7 +440,7 @@ def onBeforeStateChange(state, oldState, *args):
 def onAfterStateChange(state, oldState, *args):
     if state == 'overview':
         did = aqt.mw.col.decks.selected()
-        name = aqt.mw.col.decks.nameOrNone(did)
+        name = aqt.mw.col.decks.name_if_exists(did)
         path = name.split(u'::')
         if len(path) > 0 and path[0] == u'Yomichan':
             yomichanInstance.preventReload = True

@@ -1,16 +1,22 @@
 # -*- coding: utf-8 -*-
 
-import anki.sched
+from anki.scheduler.v2 import Scheduler as SchedulerV2
 import math
 import datetime
 import random
 import time
+import anki
 from anki.rsbackend import DeckTreeNode
 
 
-class Scheduler(anki.sched.Scheduler):
-    def __init__(self,col,filecache,scheduleVariationPercent = 0.0,minimumGain = 0.05,hideMinimumGain = False, weekDays = [True,True,True,True,True,True,True]):
-        anki.sched.Scheduler.__init__(self,col)
+class Scheduler(SchedulerV2):
+    def __init__(self, col: anki.collection.Collection, filecache, 
+            scheduleVariationPercent=0.0, 
+            minimumGain=0.05,
+            hideMinimumGain=False,
+            weekDays = [True,True,True,True,True,True,True]
+        ):
+        SchedulerV2.__init__(self, col)
         self.filecache = filecache
         self.scheduleVariationPercent = int(scheduleVariationPercent)
         # Any occuring vocabulary's ivl will increase by at least 5%
@@ -39,7 +45,7 @@ class Scheduler(anki.sched.Scheduler):
         if card.queue < 0:
             card.queue = 0
         if timeUsed is None:
-            card.startTimer()
+            card.start_timer()
         else:
             card.timerStarted = time.time() - timeUsed
         self.answerCard(card,ease)
@@ -69,9 +75,12 @@ class Scheduler(anki.sched.Scheduler):
         return max(0, due - self.today)
         
     def deck_due_tree(self, top_deck_id: int = 0):
-        data = anki.sched.Scheduler.deck_due_tree(self, top_deck_id)
+        data = SchedulerV2.deck_due_tree(self, top_deck_id)
         filecache = self.filecache()
         deck_parents = dict()
+        for child in data.children:
+            if child.name == "Yomichan" or child.name == "Yomisama":
+                deck_parents[child.name] = child
         for deck in filecache:
             id = self.col.decks.id(deck,create=False)
             if id is not None:
@@ -103,15 +112,24 @@ class Scheduler(anki.sched.Scheduler):
                 node.learn_count = 0
                 node.new_count = new
 
-                """if parent_path in deck_parents:
+                if parent_path in deck_parents:
                     parent = deck_parents[parent_path]
-                elif parent_path == "Yomisama" or parent_path == "Yomichan":
-                    parent = data
                 else:
-                    raise Exception("Invalid tree path: {}".format(deck))"""
+                    raise Exception("Invalid tree path: {}".format(deck))
+                deck_parents[deck] = node
+
+                for i in range(1, len(path)):
+                    index = "::".join(path[:-i])
+                    if index in deck_parents:
+                        deck_parents[index].review_count += due
+                        deck_parents[index].new_count += new
+                    elif index == "Yomisama" or index == "Yomichan":
+                        data.review_count += due
+                        data.new_count += new
 
                 """node = DeckTreeNode(name=path[-1], deck_id=id, review_count=due, learn_count=0, new_count=new)
                 parent.children.append(node)
                 deck_parents[deck] = node"""
+                print(deck, due)
                 self.dueCache[deck] = due
         return data

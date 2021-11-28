@@ -55,9 +55,9 @@ class DeckManager(anki.decks.DeckManager):
             f.close()
         return fullPath
 
-    def id(self, name, create=True, type=anki.decks.defaultDeck):
+    def id(self, name, create=True, type=None):
         did = anki.decks.DeckManager.id(self,name,create,type)
-        name = self.nameOrNone(did)
+        name = self.name_if_exists(did)
         if name is not None and create:
             path = name.split(u'::')
             if len(path) > 1 and path[0] == u'Yomichan':
@@ -65,7 +65,7 @@ class DeckManager(anki.decks.DeckManager):
         return did
 
     def rem(self, did, cardsToo=False, childrenToo=True):
-        name = self.nameOrNone(did)
+        name = self.name_if_exists(did)
         if name is not None:
             path = name.split(u'::')
             if len(path) > 1 and path[0] == u'Yomichan':
