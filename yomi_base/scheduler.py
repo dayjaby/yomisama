@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from anki.scheduler.v2 import Scheduler as SchedulerV2
+from anki.scheduler.v3 import Scheduler as SchedulerV2
 import math
 import datetime
 import random
@@ -24,7 +24,6 @@ class Scheduler(SchedulerV2):
         self.hideMinimumGain = hideMinimumGain
         self.weekDays = weekDays
         self.dueCache = dict()
-        self.reset()
         
     def answerCard(self,card,ease):
         if ease == 1:
@@ -38,8 +37,8 @@ class Scheduler(SchedulerV2):
                     for connectedCardId in cards:
                         connectedCard = self.col.getCard(connectedCardId)
                         connectedCard.startTimer()
-                        anki.sched.Scheduler.answerCard(self,connectedCard,ease)
-        anki.sched.Scheduler.answerCard(self,card,ease)
+                        SchedulerV2.answerCard(self,connectedCard,ease)
+        SchedulerV2.answerCard(self,card,ease)
         
     def earlyAnswerCard(self,card,ease,timeUsed=None):
         if card.queue < 0:

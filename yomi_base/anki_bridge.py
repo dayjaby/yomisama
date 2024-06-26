@@ -109,7 +109,6 @@ document.getElementById("words").innerHTML = document.getElementById("words").in
         if note is not None:
             collection = self.collection()
             collection.addNote(note)
-            collection.autosave()
             self.startEditing()
             return note.id
 
@@ -128,7 +127,7 @@ document.getElementById("words").innerHTML = document.getElementById("words").in
             return None
         note = anki.notes.Note(self.collection(), model)
         self.note = note
-        note.model()['did'] = deck['id']
+        note.note_type()['did'] = deck['id']
         note.tags = tags
 
         for name, value in fields.items():
@@ -300,7 +299,7 @@ class YomichanPlugin(Yomichan):
                 continue
             for cid,value,nid in self.anki.getCards(profile["model"]):
                 if value not in d:
-                    d[value] = self.anki.collection().getCard(cid)
+                    d[value] = self.anki.collection().get_card(cid)
             allCards[p] = d
                 
         return allCards

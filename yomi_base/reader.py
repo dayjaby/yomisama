@@ -5,6 +5,7 @@ import os
 import io
 import aqt
 import sys
+from functools import partial
 from . import preferences
 from . import reader_util
 from . import updates
@@ -422,7 +423,7 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
     def openFile(self, filename):
         self.closeFile()
         try:
-            self.currentFile = FileState(filename, self.preferences['stripReadings'],self.languages,self.profiles)
+            self.currentFile = FileState(filename, self.preferences['stripReadings'], self.languages, self.profiles)
         except IOError:
             self.setStatus(u'Failed to load file {0}'.format(filename))
             QtWidgets.QMessageBox.critical(self, 'Yomichan', 'Cannot open file for read')
@@ -569,7 +570,7 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
         
         did = self.anki.collection().decks.id(profile['deck'])
         self.anki.updateCards(cids,did)
-        card = self.anki.collection().getCard(cids[0])
+        card = self.anki.collection().get_card(cids[0])
         self.currentFile.overwriteVocabulary(completeProfile,value,card)
         self.currentFile.addMarkup(completeProfile,value,markup)
         self.facts.append({'word':value,'profile':completeProfile})
@@ -617,7 +618,7 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
         if len(ids) == 0:
             self.add = "len(ids == 0)"
             return False
-        card = self.anki.collection().getCard(ids[0])
+        card = self.anki.collection().get_card(ids[0])
         self.currentFile.profiles[completeProfile]['freshlyAdded'].append(value)
         self.currentFile.addVocabulary(completeProfile,value,card,addToBadListToo = False)
         self.currentFile.addMarkup(completeProfile,value,markup)
@@ -725,7 +726,6 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
         self.preferences.clearRecentFiles()
         self.updateRecentFiles()
 
-
     def updateRecentFiles(self):
         self.menuOpenRecent.clear()
 
@@ -734,8 +734,7 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
             return
 
         for filename in filenames:
-            menu_open_action = self.menuOpenRecent.addAction(filename) # , lambda f=filename: self.openFile(f))
-            menu_open_action.triggered.connect(lambda _: self.openFile(filename))
+            menu_open_action = self.menuOpenRecent.addAction(filename, partial(self.openFile, filename))
 
         self.menuOpenRecent.addSeparator()
         self.menuOpenRecent.addAction('Clear file history', self.clearRecentFiles)
