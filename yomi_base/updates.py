@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from PyQt5 import QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 from . import constants
-from .gen import updates_ui
+from .gen import updates
 import json
 from urllib.request import urlopen
 
 
-class DialogUpdates(QtWidgets.QDialog, updates_ui.Ui_DialogUpdates):
+class DialogUpdates(QtWidgets.QDialog, updates.Ui_DialogUpdates):
     def __init__(self, parent, versions):
         QtWidgets.QDialog.__init__(self, parent)
         self.setupUi(self)

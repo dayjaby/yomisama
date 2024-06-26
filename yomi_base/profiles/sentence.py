@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from aqt.webview import AnkiWebView
-from PyQt5 import QtWidgets
+from PyQt6 import QtWidgets
 from .profile import *
 from .. import reader_util
 import bs4 as BeautifulSoup
@@ -140,7 +140,7 @@ class SentenceProfile(GenericProfile):
         links = ""
         if self.ankiIsFactValid('sentence', self.markup(definition), index):
             self.existsAlready[index] = False
-            links += """<a href='#' onclick='pycmd(\"{0}:{1}\")'><img src="qrc:///img/img/icon_add_expression.png" align="right"/></a>""".format("sentence_add", index)
+            links += """<a href='#' onclick='pycmd(\"{0}:{1}\")'><img src="qrc:/icons/icon_add_expression.png" align="right"/></a>""".format("sentence_add", index)
         else:
             self.existsAlready[index] = True
             if allowOverwrite:

@@ -1,5 +1,5 @@
 <RCC>
-  <qresource prefix="img">
+  <qresource prefix="">
     <file>img/icon_action_about.png</file>
     <file>img/icon_action_feedback.png</file>
     <file>img/icon_copy_definition.png</file>

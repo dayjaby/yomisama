@@ -17,7 +17,7 @@
 
 import bs4 as BeautifulSoup
 from urllib.request import urlopen
-from PyQt5 import QtWidgets, QtCore
+from PyQt6 import QtWidgets, QtCore
 from aqt.webview import AnkiWebView
 from .profile import *
 from .. import reader_util
@@ -28,11 +28,11 @@ class VocabKeyFilter(QtCore.QObject):
 
     def eventFilter(self, unused, event):
         obj = self.obj
-        if event.type() == QtCore.QEvent.MouseButtonPress:
+        if event.type() == QtCore.QEvent.Type.MouseButtonPress:
             if event.buttons() & QtCore.Qt.MidButton or event.modifiers() & QtCore.Qt.ShiftModifier:
                 obj.updateSampleFromSelection()
                 return True
-        elif event.type() == QtCore.QEvent.KeyPress:
+        elif event.type() == QtCore.QEvent.Type.KeyPress:
             if event.key() == preferences.lookupKeys[obj.reader.preferences['lookupKey']][1]:
                 obj.updateSampleFromSelection()
                 return True
@@ -261,7 +261,7 @@ class VocabularyProfile(GenericProfile):
         if definition.get('gender'):
             gender = '<span class="gender">{0}<br></span>'.format(definition['gender'])
 
-        links = """<a href='#' onclick='pycmd(\"{0}:{1}\")'><img src="qrc:///img/img/icon_copy_definition.png" align="right"/></a>""".format("vocabulary_copy", index)
+        links = """<a href='#' onclick='pycmd(\"{0}:{1}\")'><img src="qrc://img/icon_copy_definition.png" align="right"/></a>""".format("vocabulary_copy", index)
         markupExp = self.markup(definition)
         defReading = definition.copy()
         if defReading.get('reading'):
@@ -269,16 +269,16 @@ class VocabularyProfile(GenericProfile):
             del defReading['reading']
         markupReading = self.markup(defReading)
         if self.ankiIsFactValid('vocabulary', markupExp, index):
-            links += """<a href='#' onclick='pycmd(\"{0}:{1}\")'><img src="qrc:///img/img/icon_add_expression.png" align="right"/></a>""".format("vocabulary_add", index)
+            links += """<a href='#' onclick='pycmd(\"{0}:{1}\")'><img src="qrc://img/icon_add_expression.png" align="right"/></a>""".format("vocabulary_add", index)
         else:
             if allowOverwrite:
-                links += """<a href='#' onclick='pycmd(\"{0}:{1}\")'><img src="qrc:///img/img/icon_overwrite_expression.png" align="right"/></a>""".format("vocabulary_write", index)
+                links += """<a href='#' onclick='pycmd(\"{0}:{1}\")'><img src="qrc://img/icon_overwrite_expression.png" align="right"/></a>""".format("vocabulary_write", index)
         if markupReading is not None and definition.get('language') == 'Japanese':
             if self.ankiIsFactValid('vocabulary', markupReading, index):
-                links += """<a href='#' onclick='pycmd(\"{0}:{1}\")'><img src="qrc:///img/img/icon_add_reading.png" align="right"/></a>""".format("vocabulary_add_reading", index)
+                links += """<a href='#' onclick='pycmd(\"{0}:{1}\")'><img src="qrc://img/icon_add_reading.png" align="right"/></a>""".format("vocabulary_add_reading", index)
             elif markupExp is not None and markupReading['summary'] != markupExp['summary']:
                 if allowOverwrite:
-                    links += """<a href='#' onclick='pycmd(\"{0}:{1}\")'><img src="qrc:///img/img/icon_overwrite_reading.png" align="right"/></a>""".format("vocabulary_overwrite_reading", index)
+                    links += """<a href='#' onclick='pycmd(\"{0}:{1}\")'><img src="qrc://img/icon_overwrite_reading.png" align="right"/></a>""".format("vocabulary_overwrite_reading", index)
 
         def glossary(hide):
             if hide:

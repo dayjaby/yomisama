@@ -1,0 +1,3 @@
+pyside6
+pyqt6-tools
+pyqt6rc

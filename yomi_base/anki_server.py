@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from PyQt5 import QtCore
+from PyQt6 import QtCore
 from ajax import AjaxServer
 from .constants import c
 

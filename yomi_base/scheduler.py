@@ -76,60 +76,61 @@ class Scheduler(SchedulerV2):
         
     def deck_due_tree(self, top_deck_id: int = 0):
         data = SchedulerV2.deck_due_tree(self, top_deck_id)
+        # data = SchedulerV2.deck_tree(self, top_deck_id)
         filecache = self.filecache()
         deck_parents = dict()
-        for child in data.children:
-            if child.name == "Yomichan" or child.name == "Yomisama":
-                deck_parents[child.name] = child
-        for deck in filecache:
-            id = self.col.decks.id(deck,create=False)
-            if id is not None:
-                if filecache[deck] is None:
-                    due = 0
-                    new = 0
-                else:
-                    if self.hideMinimumGain:
-                        due = int(filecache[deck].dueness - filecache[deck].foundvocabs * self.minimumGain)
+        if data is not None:
+            for child in data.children:
+                if child.name == "Yomichan" or child.name == "Yomisama":
+                    deck_parents[child.name] = child
+            for deck in filecache:
+                id = self.col.decks.id(deck,create=False)
+                if id is not None:
+                    if filecache[deck] is None:
+                        due = 0
+                        new = 0
                     else:
-                        due = int(filecache[deck].dueness)
-                    new = filecache[deck].count('wordsNotFound')
-                path = deck.split("::")
-                parent_path = "::".join(path[:-1])
-                # try to find parent in the already existing tree
-                node = data
-                for child_name in path:
-                    found = False
-                    for child in node.children:
-                        if child_name == child.name:
-                            node = child
-                            found = True
-                            break
-                    if not found:
-                        raise Exception("Could not find child: {} in {}".format(child_name, deck))
-                parent = node
+                        if self.hideMinimumGain:
+                            due = int(filecache[deck].dueness - filecache[deck].foundvocabs * self.minimumGain)
+                        else:
+                            due = int(filecache[deck].dueness)
+                        new = filecache[deck].count('wordsNotFound')
+                    path = deck.split("::")
+                    parent_path = "::".join(path[:-1])
+                    # try to find parent in the already existing tree
+                    node = data
+                    for child_name in path:
+                        found = False
+                        for child in node.children:
+                            if child_name == child.name:
+                                node = child
+                                found = True
+                                break
+                        if not found:
+                            raise Exception("Could not find child: {} in {}".format(child_name, deck))
+                    parent = node
 
-                node.review_count = due
-                node.learn_count = 0
-                node.new_count = new
+                    node.review_count = due
+                    node.learn_count = 0
+                    node.new_count = new
 
-                if parent_path in deck_parents:
-                    parent = deck_parents[parent_path]
-                else:
-                    raise Exception("Invalid tree path: {}".format(deck))
-                deck_parents[deck] = node
+                    if parent_path in deck_parents:
+                        parent = deck_parents[parent_path]
+                    else:
+                        raise Exception("Invalid tree path: {}".format(deck))
+                    deck_parents[deck] = node
 
-                for i in range(1, len(path)):
-                    index = "::".join(path[:-i])
-                    if index in deck_parents:
-                        deck_parents[index].review_count += due
-                        deck_parents[index].new_count += new
-                    elif index == "Yomisama" or index == "Yomichan":
-                        data.review_count += due
-                        data.new_count += new
+                    for i in range(1, len(path)):
+                        index = "::".join(path[:-i])
+                        if index in deck_parents:
+                            deck_parents[index].review_count += due
+                            deck_parents[index].new_count += new
+                        elif index == "Yomisama" or index == "Yomichan":
+                            data.review_count += due
+                            data.new_count += new
 
-                """node = DeckTreeNode(name=path[-1], deck_id=id, review_count=due, learn_count=0, new_count=new)
-                parent.children.append(node)
-                deck_parents[deck] = node"""
-                print(deck, due)
-                self.dueCache[deck] = due
+                    """node = DeckTreeNode(name=path[-1], deck_id=id, review_count=due, learn_count=0, new_count=new)
+                    parent.children.append(node)
+                    deck_parents[deck] = node"""
+                    self.dueCache[deck] = due
         return data

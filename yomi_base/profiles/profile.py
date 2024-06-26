@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from PyQt5 import QtCore, QtWidgets, QtGui
+from PyQt6 import QtCore, QtWidgets, QtGui
 from .. import reader_util
 
 try:
@@ -99,8 +99,8 @@ class GenericProfile:
 
     def buildDefHeader(self):
         palette = QtWidgets.QApplication.palette()
-        toolTipBg = palette.color(QtGui.QPalette.Window).name()
-        toolTipFg = palette.color(QtGui.QPalette.WindowText).name()
+        toolTipBg = palette.color(QtGui.QPalette.ColorRole.Window).name()
+        toolTipFg = palette.color(QtGui.QPalette.ColorRole.WindowText).name()
 
         return u"""
             <html><head><style>

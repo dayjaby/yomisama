@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from PyQt5 import QtWidgets,QtCore
+from PyQt6 import QtWidgets,QtCore
 from .profile import *
 from anki.utils import isWin
 import subprocess
@@ -45,7 +45,7 @@ class MPlayerKeyFilter(QtCore.QObject):
         if not hasattr(self, "mplayer"):
             return False
         mp = self.profile.mplayer
-        if event.type() != QtCore.QEvent.KeyPress or mp is None:
+        if event.type() != QtCore.QEvent.Type.KeyPress or mp is None:
             return False
         if QtCore.Qt.Key_Pause == event.key() or QtCore.Qt.Key_Space == event.key():
             self.profile.pause()

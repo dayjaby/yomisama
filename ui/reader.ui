@@ -18,7 +18,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="resources.qrc">
-    <normaloff>:/img/img/icon_logo_32.png</normaloff>:/img/img/icon_logo_32.png</iconset>
+    <normaloff>icons:icon_logo_32.png</normaloff>icons:icon_logo_32.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -43,7 +43,7 @@
      <x>0</x>
      <y>0</y>
      <width>900</width>
-     <height>21</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -212,7 +212,7 @@
   <action name="actionOpen">
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/img/img/icon_action_open.png</normaloff>:/img/img/icon_action_open.png</iconset>
+     <normaloff>icons:icon_action_open.png</normaloff>icons:icon_action_open.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Open...</string>
@@ -230,7 +230,7 @@
   <action name="actionQuit">
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/img/img/icon_action_quit.png</normaloff>:/img/img/icon_action_quit.png</iconset>
+     <normaloff>icons:icon_action_quit.png</normaloff>icons:icon_action_quit.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Quit</string>
@@ -245,7 +245,7 @@
   <action name="actionPreferences">
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/img/img/icon_action_preferences.png</normaloff>:/img/img/icon_action_preferences.png</iconset>
+     <normaloff>icons:icon_action_preferences.png</normaloff>icons:icon_action_preferences.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Preferences...</string>
@@ -260,7 +260,7 @@
   <action name="actionAbout">
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/img/img/icon_action_about.png</normaloff>:/img/img/icon_action_about.png</iconset>
+     <normaloff>icons:icon_action_about.png</normaloff>icons:icon_action_about.png</iconset>
    </property>
    <property name="text">
     <string>&amp;About...</string>
@@ -275,7 +275,7 @@
   <action name="actionZoomIn">
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/img/img/icon_action_zoom_in.png</normaloff>:/img/img/icon_action_zoom_in.png</iconset>
+     <normaloff>icons:icon_action_zoom_in.png</normaloff>icons:icon_action_zoom_in.png</iconset>
    </property>
    <property name="text">
     <string>Zoom &amp;in</string>
@@ -290,7 +290,7 @@
   <action name="actionZoomOut">
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/img/img/icon_action_zoom_out.png</normaloff>:/img/img/icon_action_zoom_out.png</iconset>
+     <normaloff>icons:icon_action_zoom_out.png</normaloff>icons:icon_action_zoom_out.png</iconset>
    </property>
    <property name="text">
     <string>Zoom &amp;out</string>
@@ -305,7 +305,7 @@
   <action name="actionZoomReset">
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/img/img/icon_action_zoom_reset.png</normaloff>:/img/img/icon_action_zoom_reset.png</iconset>
+     <normaloff>icons:icon_action_zoom_reset.png</normaloff>icons:icon_action_zoom_reset.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Reset</string>
@@ -332,7 +332,7 @@
    </property>
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/img/img/icon_action_find.png</normaloff>:/img/img/icon_action_find.png</iconset>
+     <normaloff>icons:icon_action_find.png</normaloff>icons:icon_action_find.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Find...</string>
@@ -389,7 +389,7 @@
   <action name="actionHomepage">
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/img/img/icon_action_homepage.png</normaloff>:/img/img/icon_action_homepage.png</iconset>
+     <normaloff>icons:icon_action_homepage.png</normaloff>icons:icon_action_homepage.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Homepage...</string>
@@ -412,7 +412,7 @@
   <action name="actionFeedback">
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/img/img/icon_action_feedback.png</normaloff>:/img/img/icon_action_feedback.png</iconset>
+     <normaloff>icons:icon_action_feedback.png</normaloff>icons:icon_action_feedback.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Feedback...</string>
@@ -439,7 +439,7 @@
   <action name="actionSave">
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/img/img/icon_copy_definition.png</normaloff>:/img/img/icon_copy_definition.png</iconset>
+     <normaloff>icons:icon_copy_definition.png</normaloff>icons:icon_copy_definition.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Save...</string>
@@ -459,8 +459,8 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="resources.qrc">
-     <normaloff>:/img/img/icon_action_ko.png</normaloff>:/img/img/icon_action_ko.png</iconset>
+    <iconset>
+    <normaloff>icons:icon_action_ko.png</normaloff>icons:icon_action_ko.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Korean</string>
@@ -478,7 +478,7 @@
    </property>
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/img/img/icon_action_ch.png</normaloff>:/img/img/icon_action_ch.png</iconset>
+     <normaloff>icons:icon_action_ch.png</normaloff>icons:icon_action_ch.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Chinese</string>
@@ -502,7 +502,7 @@
    </property>
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/img/img/icon_action_jp.png</normaloff>:/img/img/icon_action_jp.png</iconset>
+     <normaloff>icons:icon_action_jp.png</normaloff>icons:icon_action_jp.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Japanese</string>
@@ -526,7 +526,7 @@
    </property>
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/img/img/icon_action_de.png</normaloff>:/img/img/icon_action_de.png</iconset>
+     <normaloff>icons:icon_action_de.png</normaloff>icons:icon_action_de.png</iconset>
    </property>
    <property name="text">
     <string>&amp;German</string>
@@ -544,7 +544,7 @@
    </property>
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/img/img/icon_action_es.png</normaloff>:/img/img/icon_action_es.png</iconset>
+     <normaloff>icons:icon_action_es.png</normaloff>icons:icon_action_es.png</iconset>
    </property>
    <property name="text">
     <string>Spanish</string>
@@ -562,7 +562,7 @@
    </property>
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/img/img/icon_action_fr.png</normaloff>:/img/img/icon_action_fr.png</iconset>
+     <normaloff>icons:icon_action_fr.png</normaloff>icons:icon_action_fr.png</iconset>
    </property>
    <property name="text">
     <string>&amp;French</string>

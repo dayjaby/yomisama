@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 
-from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt6 import QtWidgets, QtCore, QtGui
 import copy
-from .gen import preferences_ui
+from .gen import preferences
 import locale
 
 locale.setlocale(locale.LC_ALL, '')
         
 lookupKeys = [
-            ('Insert',QtCore.Qt.Key_Insert),
-            ('Shift',QtCore.Qt.Key_Shift),
-            ('Pause',QtCore.Qt.Key_Pause),
-            ('F1',QtCore.Qt.Key_F1)
+            ('Insert',QtCore.Qt.Key.Key_Insert),
+            ('Shift',QtCore.Qt.Key.Key_Shift),
+            ('Pause',QtCore.Qt.Key.Key_Pause),
+            ('F1',QtCore.Qt.Key.Key_F1)
         ]
 
-class DialogPreferences(QtWidgets.QDialog, preferences_ui.Ui_DialogPreferences):
+class DialogPreferences(QtWidgets.QDialog, preferences.Ui_DialogPreferences):
     def __init__(self, parent, preferences, anki, profiles):
         QtWidgets.QDialog.__init__(self, parent)
         self.setupUi(self)
@@ -123,8 +123,8 @@ class DialogPreferences(QtWidgets.QDialog, preferences_ui.Ui_DialogPreferences):
 
     def updateSampleText(self):
         palette = self.textSample.palette()
-        palette.setColor(QtGui.QPalette.Base, QtGui.QColor(self.preferences['bgColor']))
-        palette.setColor(QtGui.QPalette.Text, QtGui.QColor(self.preferences['fgColor']))
+        palette.setColor(QtGui.QPalette.ColorRole.Base, QtGui.QColor(*self.preferences['bgColor']))
+        palette.setColor(QtGui.QPalette.ColorRole.Text, QtGui.QColor(*self.preferences['fgColor']))
         self.textSample.setPalette(palette)
 
         font = self.textSample.font()
@@ -144,7 +144,7 @@ class DialogPreferences(QtWidgets.QDialog, preferences_ui.Ui_DialogPreferences):
             columns = list()
 
             itemName = QtWidgets.QTableWidgetItem(name)
-            itemName.setFlags(QtCore.Qt.ItemIsSelectable)
+            itemName.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable)
             columns.append(itemName)
 
             itemValue = QtWidgets.QTableWidgetItem(fieldsPrefs.get(name, ""))
@@ -172,16 +172,16 @@ class DialogPreferences(QtWidgets.QDialog, preferences_ui.Ui_DialogPreferences):
 
 
     def onButtonColorFgClicked(self):
-        color, ok = QtWidgets.QColorDialog.getRgba(self.preferences['fgColor'], self)
-        if ok:
-            self.preferences['fgColor'] = color
+        color = QtWidgets.QColorDialog.getColor(QtGui.QColor(*self.preferences['fgColor']), self)
+        if color.isValid():
+            self.preferences['fgColor'] = [color.red(), color.green(), color.blue(), color.alpha()]
             self.updateSampleText()
 
 
     def onButtonColorBgClicked(self):
-        color, ok = QtWidgets.QColorDialog.getRgba(self.preferences['bgColor'], self)
-        if ok:
-            self.preferences['bgColor'] = color
+        color = QtWidgets.QColorDialog.getColor(QtGui.QColor(*self.preferences['bgColor']), self)
+        if color.isValid():
+            self.preferences['bgColor'] = [color.red(), color.green(), color.blue(), color.alpha()]
             self.updateSampleText()
 
 

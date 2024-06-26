@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from aqt.webview import AnkiWebView
-from PyQt5 import QtWidgets
+from PyQt6 import QtWidgets
 from .profile import *
 import os
 
@@ -112,9 +112,9 @@ class KanjiProfile(GenericProfile):
     }
 
     def buildDefBody(self, definition, index, allowOverwrite):
-        links = """<a href='#' onclick='pycmd(\"{0}:{1}\")'><img src="qrc:///img/img/icon_copy_definition.png" align="right"/></a>""".format("kanji_copy", index)
+        links = """<a href='#' onclick='pycmd(\"{0}:{1}\")'><img src="qrc:/img/icon_copy_definition.png" align="right"/></a>""".format("kanji_copy", index)
         if (self.ankiIsFactValid('kanji', definition, index)):
-            links += """<a href='#' onclick='pycmd(\"{0}:{1}\")'><img src="qrc:///img/img/icon_add_expression.png" align="right"/></a>""".format("kanji_add", index)
+            links += """<a href='#' onclick='pycmd(\"{0}:{1}\")'><img src="qrc:/img/icon_add_expression.png" align="right"/></a>""".format("kanji_add", index)
 
         readings = ', '.join([definition['kunyomi'], definition['onyomi']])
         if definition['ongroup'] is not None:

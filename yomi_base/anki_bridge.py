@@ -4,7 +4,7 @@ import sys
 import os
 import time
 import random
-from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt6 import QtWidgets, QtCore, QtGui
 import anki
 import aqt
 from anki.hooks import addHook
@@ -300,7 +300,7 @@ class YomichanPlugin(Yomichan):
                 continue
             for cid,value,nid in self.anki.getCards(profile["model"]):
                 if value not in d:
-                    d[value] = self.anki.collection().getCard(cid)
+                    d[value] = self.anki.collection().get_card(cid)
             allCards[p] = d
                 
         return allCards

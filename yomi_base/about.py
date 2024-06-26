@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from PyQt5 import QtWidgets
+from PyQt6 import QtWidgets
 from . import constants
-from .gen import about_ui
+from .gen import about
 
 
-class DialogAbout(QtWidgets.QDialog, about_ui.Ui_DialogAbout):
+class DialogAbout(QtWidgets.QDialog, about.Ui_DialogAbout):
     def __init__(self, parent):
         QtWIdgets.QDialog.__init__(self, parent)
         self.setupUi(self)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt6 import QtWidgets, QtCore, QtGui
 import os
 import io
 import aqt
@@ -10,7 +10,7 @@ from . import reader_util
 from . import updates
 from . import about
 from . import constants
-from .gen import reader_ui
+from .gen import reader
 from . import profiles
 from .file_state import FileState
 from .constants import extensions
@@ -24,31 +24,31 @@ class MyKeyFilter(QtCore.QObject):
     
     def eventFilter(self, unused, event):
         obj = self.obj
-        if event.type() != QtCore.QEvent.KeyPress:
+        if event.type() != QtCore.QEvent.Type.KeyPress:
             return False
-        if QtCore.Qt.Key_F1 == event.key() and event.modifiers() & QtCore.Qt.ControlModifier:
+        if QtCore.Qt.Key.Key_F1 == event.key() and event.modifiers() & QtCore.Qt.KeyboardModifier.ControlModifier:
             obj.executeDefCommand('sentence_add',0)
         elif event.key() == preferences.lookupKeys[obj.preferences['lookupKey']][1]:
             obj.updateSampleFromPosition()
-        elif (event.key() == QtCore.Qt.Key_W and event.modifiers() & QtCore.Qt.AltModifier):
+        elif (event.key() == QtCore.Qt.Key.Key_W and event.modifiers() & QtCore.Qt.KeyboardModifier.AltModifier):
             obj.createAlias()
-        elif (event.key() == QtCore.Qt.Key_S and event.modifiers() & QtCore.Qt.AltModifier):
+        elif (event.key() == QtCore.Qt.Key.Key_S and event.modifiers() & QtCore.Qt.KeyboardModifier.AltModifier):
             obj.createSubscription()
-        elif (event.key() == QtCore.Qt.Key_R and event.modifiers() & QtCore.Qt.AltModifier):
+        elif (event.key() == QtCore.Qt.Key.Key_R and event.modifiers() & QtCore.Qt.KeyboardModifier.AltModifier):
             obj.restoreRecentIncorrect()
-        elif (event.key() == QtCore.Qt.Key_N and event.modifiers() & QtCore.Qt.AltModifier):
+        elif (event.key() == QtCore.Qt.Key.Key_N and event.modifiers() & QtCore.Qt.KeyboardModifier.AltModifier):
             obj.showNotFoundWords()
         elif ord('0') <= event.key() <= ord('9') and obj.anki is not None:
             index = (event.key() - ord('0') - 1) % 10
-            if event.modifiers() & QtCore.Qt.ShiftModifier:
-                if event.modifiers() & QtCore.Qt.ControlModifier:
+            if event.modifiers() & QtCore.Qt.KeyboardModifier.ShiftModifier:
+                if event.modifiers() & QtCore.Qt.KeyboardModifier.ControlModifier:
                     obj.executeDefCommand('kanji_add', index)
                 else:
                     return False
             else:
-                if event.modifiers() & QtCore.Qt.ControlModifier:
+                if event.modifiers() & QtCore.Qt.KeyboardModifier.ControlModifier:
                     obj.executeDefCommand('vocabulary_add', index)
-                elif event.modifiers() & QtCore.Qt.AltModifier:
+                elif event.modifiers() & QtCore.Qt.KeyboardModifier.AltModifier:
                     obj.executeDefCommand('vocabulary_add_reading', index)
                 else:
                     return False
@@ -63,7 +63,7 @@ class MyKeyFilter(QtCore.QObject):
         return True
 
 
-class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
+class MainWindowReader(QtWidgets.QMainWindow, reader.Ui_MainWindowReader):
             
                 
     class State:
@@ -94,9 +94,15 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
         self.state = self.State()
         self.updates = updates.UpdateFinder()
         self.zoom = 0
+        self.keyFilter = MyKeyFilter()
+        self.keyFilter.obj = self
+        self.installEventFilter(self.keyFilter)
+        self.textContent.installEventFilter(self.keyFilter)
+        
+        self.profiles = profiles.getAllProfiles(self)
+        for profile in self.profiles.values():
+            profile.updateDefinitions()
         self.updateRecentFiles()
-
-
         self.actionAbout.triggered.connect(self.onActionAbout)
         self.actionFeedback.triggered.connect(self.onActionFeedback)
         self.actionFind.triggered.connect(self.onActionFind)
@@ -124,16 +130,8 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
         self.listDefinitions.itemDoubleClicked.connect(self.onDefinitionDoubleClicked)
         self.updates.updateResult.connect(self.onUpdaterSearchResult)
 
-        self.keyFilter = MyKeyFilter()
-        self.keyFilter.obj = self
-        self.installEventFilter(self.keyFilter)
-        self.textContent.installEventFilter(self.keyFilter)
-        
         if self.preferences['checkForUpdates']:
             self.updates.start()
-        self.profiles = profiles.getAllProfiles(self)
-        for profile in self.profiles.values():
-            profile.updateDefinitions()
         if self.preferences['rememberTextContent']:
             self.textContent.setPlainText(self.preferences['textContent'])
         elif self.anki is not None:
@@ -168,7 +166,7 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
         perCardMinutes = int(self.currentFile.timePerWord) // 60
         QtWidgets.QMessageBox.information(
             self,
-            'Yomichan', '{0} correct and {1} wrong\n{2} minutes {3} seconds for all\n{4} minutes {5} seconds per card'
+            'Yomisama', '{0} correct and {1} wrong\n{2} minutes {3} seconds for all\n{4} minutes {5} seconds per card'
             .format(self.currentFile.correct,self.currentFile.wrong,
                 totalMinutes,totalSeconds,
                 perCardMinutes,perCardSeconds)
@@ -198,17 +196,17 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
 
     def applyPreferencesContent(self):
         palette = self.textContent.palette()
-        palette.setColor(QtGui.QPalette.Base, QtGui.QColor(self.preferences['bgColor']))
-        palette.setColor(QtGui.QPalette.Text, QtGui.QColor(self.preferences['fgColor']))
+        palette.setColor(QtGui.QPalette.ColorRole.Base, QtGui.QColor(*self.preferences['bgColor']))
+        palette.setColor(QtGui.QPalette.ColorRole.Text, QtGui.QColor(*self.preferences['fgColor']))
         self.textContent.setPalette(palette)
 
         self.textContent.setReadOnly(not self.preferences['allowEditing'])
-        self.textContent.setAttribute(QtCore.Qt.WA_InputMethodEnabled)
+        self.textContent.setAttribute(QtCore.Qt.WidgetAttribute.WA_InputMethodEnabled)
 
         font = self.textContent.font()
         font.setFamily(self.preferences['fontFamily'])
         font.setPointSize(self.preferences['fontSize'] + self.zoom)
-        self.textContent.setLineWrapMode(QtWidgets.QPlainTextEdit.WidgetWidth if self.preferences['wordWrap'] else QtWidgets.QPlainTextEdit.NoWrap)
+        self.textContent.setLineWrapMode(QtWidgets.QPlainTextEdit.LineWrapMode.WidgetWidth if self.preferences['wordWrap'] else QtWidgets.QPlainTextEdit.LineWrapMode.NoWrap)
         self.textContent.setFont(font)
 
         self.actionToggleWrap.setChecked(self.preferences['wordWrap'])
@@ -307,7 +305,7 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
           
     def onActionPreferences(self):
         dialog = preferences.DialogPreferences(self, self.preferences, self.anki, self.profiles)
-        if dialog.exec_() == QtWidgets.QDialog.Accepted:
+        if dialog.exec() == QtWidgets.QDialog.DialogCode.Accepted:
             self.applyPreferencesContent()
 
 
@@ -425,7 +423,7 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
             self.currentFile = FileState(filename, self.preferences['stripReadings'],self.languages,self.profiles)
         except IOError:
             self.setStatus(u'Failed to load file {0}'.format(filename))
-            QtWidgets.QMessageBox.critical(self, 'Yomichan', 'Cannot open file for read')
+            QtWidgets.QMessageBox.critical(self, 'Yomisama', 'Cannot open file for read')
             return
         self.listDefinitions.clear()
         self.facts = []
@@ -479,7 +477,7 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
                 fp.close()
         except IOError:
             self.setStatus(u'Failed to save file {0}'.format(filename))
-            QtWidgets.QMessageBox.critical(self, 'Yomichan', 'Cannot open file for write')
+            QtWidgets.QMessageBox.critical(self, 'Yomisama', 'Cannot open file for write')
             return
         self.state.filename = filename
         self.currentFile.filename = filename
@@ -643,8 +641,7 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
     def updateSampleMouseEvent(self, event):
         cursor = self.textContent.cursorForPosition(event.pos())
         self.state.scanPosition = cursor.position()
-        if event.buttons() & QtCore.Qt.MidButton or event.modifiers() &\
-        QtCore.Qt.ShiftModifier or event.buttons() & QtCore.Qt.XButton1:
+        if event.buttons() & QtCore.Qt.MouseButton.MiddleButton or event.modifiers() & QtCore.Qt.KeyboardModifier.ShiftModifier or event.buttons() & QtCore.Qt.MouseButton.XButton1:
             self.updateSampleFromPosition()
 
     def createAlias(self):
@@ -666,7 +663,7 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
         if ok:
             target, ok = QtWidgets.QInputDialog.getText(self, 'Create Subscription', 'Target: ')
         if ok:
-            target = os.path.join(os.path.join(aqt.mw.col.media.dir(),'Yomichan'),target)
+            target = os.path.join(os.path.join(aqt.mw.col.media.dir(),'Yomisama'),target)
             if not os.path.exists(os.path.dirname(target)):
                 os.makedirs(os.path.dirname(target))
             self.preferences['subscriptions'].append({'source':source,'target':target})
@@ -732,10 +729,9 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
         filenames = self.preferences.recentFiles()
         if len(filenames) == 0:
             return
-
-        for filename in filenames:
-            menu_open_action = self.menuOpenRecent.addAction(filename) # , lambda f=filename: self.openFile(f))
-            menu_open_action.triggered.connect(lambda _: self.openFile(filename))
+        actions = [(fname, self.menuOpenRecent.addAction(fname)) for fname in filenames]
+        for fname, action in actions:
+            action.triggered.connect(lambda _: self.openFile(fname))
 
         self.menuOpenRecent.addSeparator()
         self.menuOpenRecent.addAction('Clear file history', self.clearRecentFiles)
@@ -771,7 +767,7 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
                 self.recentIncorrect = None
             
     def showNotFoundWords(self):
-        QtWidgets.QMessageBox.critical(self, 'Yomichan', u'\n'.join(self.currentFile.profiles['vocabulary']['wordsNotFound']))
+        QtWidgets.QMessageBox.critical(self, 'Yomisama', u'\n'.join(self.currentFile.profiles['vocabulary']['wordsNotFound']))
         if len(self.currentFile.profiles['vocabulary']['wordsNotFound']) > 0:
             txt = self.currentFile.profiles['vocabulary']['wordsNotFound'][0]
             lbracket = txt.find(u'[')
