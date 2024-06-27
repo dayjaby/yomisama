@@ -84,7 +84,7 @@ class KanjiProfile(GenericProfile):
         elif cmd[0] =="add":
             self.addFact(definition)
         elif cmd[0] == "addgroup":
-            kanjigroups = os.path.join(self.reader.anki.collection().media.dir(),"Yomichan","KanjiGroups")
+            kanjigroups = os.path.join(self.reader.anki.collection().media.dir(), "Yomisama", "KanjiGroups")
             if os.path.exists(kanjigroups):
                 filename = os.path.join(kanjigroups,definition['ongroup']+".txt")
                 with open(filename,'w') as fp:

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import aqt
+from anki.collection import OpChanges, OpChangesWithCount
 import anki.decks
 import anki.utils
 from anki.consts import *
@@ -16,13 +17,14 @@ class DeckManager(anki.decks.DeckManager):
         anki.decks.DeckManager.__init__(self,col)
         self.decks = col.decks.decks
         self.filecache = filecache
+        self.ydeck = "Yomisama"
 
     def isYomiDeck(self, did):
-        return self.get(did)["name"].split("::")[0]=="Yomichan"
+        return self.get(did)["name"].split("::")[0] == self.ydeck
 
     def get_yomi_cids(self, did):
         deck = self.get(did)
-        return self.col.db.list("select c.id from cards c join notes n on n.id = c.nid where " + anki_bridge.searchYomichanDeck(deck["name"]))
+        return self.col.db.list("select c.id from cards c join notes n on n.id = c.nid where " + anki_bridge.searchYomisamaDeck(deck["name"]))
 
     def cids(self, did, children=False):
         if self.isYomiDeck(did):
@@ -56,45 +58,44 @@ class DeckManager(anki.decks.DeckManager):
         return fullPath
 
     def id(self, name, create=True, type=None):
-        did = anki.decks.DeckManager.id(self,name,create,type)
+        did = anki.decks.DeckManager.id(self, name, create, type)
         name = self.name_if_exists(did)
         if name is not None and create:
             path = name.split(u'::')
-            if len(path) > 1 and path[0] == u'Yomichan':
+            if len(path) > 1 and path[0] == self.ydeck:
                 self.createDeck(path)
         return did
 
-    def rem(self, did, cardsToo=False, childrenToo=True):
-        name = self.name_if_exists(did)
-        if name is not None:
-            path = name.split(u'::')
-            if len(path) > 1 and path[0] == u'Yomichan':
-                completePath = self.col.media.dir()
-                for i in path:
-                    completePath = os.path.join(completePath,i)
-                if os.path.isdir(completePath):
-                    shutil.rmtree(completePath)
-                elif os.path.isfile(completePath):
-                    print("Remove {} failed. File removal disabled".format(completePath))
-                    # os.remove(completePath)
-                    if name in self.filecache:
-                        del self.filecache[name]
-            if len(path) > 1 or path[0] != u'Yomichan':
-                anki.decks.DeckManager.rem(self,did,cardsToo,childrenToo)
+    def remove(self, dids) -> OpChangesWithCount:
+        for did in dids:
+            name = self.name_if_exists(did)
+            if name is not None:
+                path = name.split('::')
+                if len(path) > 1 and path[0] == self.ydeck:
+                    completePath = os.path.join(self.col.media.dir(), *path)
+                    if os.path.isdir(completePath):
+                        shutil.rmtree(completePath)
+                    elif os.path.isfile(completePath):
+                        print("Remove {} failed. File removal disabled".format(completePath))
+                        # os.remove(completePath)
+                        if name in self.filecache:
+                            del self.filecache[name]
+        return anki.decks.DeckManager.remove(self, dids)
 
-    def rename(self, g, name):
-        path = name.split(u'::')
-        gname = g['name'] # old name
+    def rename(self, g, name) -> OpChanges:
+        path = name.split('::')
+        gname = self.name_if_exists(g)
         path2 = gname.split(u'::')
-        isYomichan = len(path) > 1 and path[0] == u'Yomichan'
-        isYomichan2 = len(path2) > 1 and path2[0] == u'Yomichan'
+        src_is_yomisama = len(path) > 1 and path[0] == self.ydeck
+        dst_is_yomisama = len(path2) > 1 and path2[0] == self.ydeck
         isFile = name.endswith(extensions['text'])
         isFile2 = gname.endswith(extensions['text'])
-        if isYomichan == isYomichan2 and isFile==isFile2:
-            anki.decks.DeckManager.rename(self,g,name)
-        elif isYomichan2 and not isYomichan:
-            # when "renaming" a Yomichan deck to a non-Yomichan deck, 
-            # create a filtered deck for the Yomichan deck
+        if src_is_yomisama == dst_is_yomisama and isFile == isFile2:
+            print(g, name)
+            return anki.decks.DeckManager.rename(self, g, name)
+        elif dst_is_yomisama and not src_is_yomisama:
+            # when "renaming" a Yomisama deck to a non-Yomisama deck, 
+            # create a filtered deck for the Yomisama deck
             dynParent = None
             if '::' in name:
                 newParent = '::'.join(name.split('::')[:-1])
@@ -112,12 +113,12 @@ class DeckManager(anki.decks.DeckManager):
                 self.debug = self.get(did)
                 aqt.mw.col.sched.rebuildDyn(did)
         else:
-            # don't allow renaming of non-Yomichan deck to Yomichan deck
+            # don't allow renaming of non-Yomisama deck to Yomisama deck
             if '::' in name:
                 newParent = '::'.join(name.split('::')[:-1])
                 if self.byName(newParent)['dyn']:
                     raise DeckRenameError(_("A filtered deck cannot have subdecks."))
-        if isYomichan and isYomichan2 and (isFile==isFile2):
+        if src_is_yomisama and dst_is_yomisama and (isFile==isFile2):
             root_dst_dir = self.createDeck(path)
             root_src_dir = self.col.media.dir()
             for i in path2:
@@ -145,3 +146,17 @@ class DeckManager(anki.decks.DeckManager):
                         self.filecache[nname] = self.filecache[gname]
                         del self.filecache[gname]
             aqt.mw.moveToState("deckBrowser")
+        return OpChanges(
+            card=False,
+            note=False,
+            deck=True,
+            tag=False,
+            notetype=False,
+            config=False,
+            deck_config=True,
+            mtime=False,
+            browser_table=False,
+            browser_sidebar=False,
+            note_text=False,
+            study_queues=True
+        )

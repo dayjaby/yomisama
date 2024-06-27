@@ -24,8 +24,8 @@ from anki.utils import ids2str, int_time
 class Anki:
     def createYomichanModel(self):
         models = self.collection().models
-        if models.by_name(u'YomichanSentence') is None:
-            model = models.new(u'YomichanSentence')
+        if models.by_name(u'YomisamaSentence') is None:
+            model = models.new(u'YomisamaSentence')
             model['css'] = """\
 .card {
  font-family: arial;
@@ -45,8 +45,8 @@ class Anki:
             template['afmt'] = u'{{FrontSide}}<hr>{{Expression}}'
             models.addTemplate(model,template)
             models.add(model)
-        if models.by_name(u'YomichanKanji') is None:
-            model = models.new(u'YomichanKanji')
+        if models.by_name(u'YomisamaKanji') is None:
+            model = models.new(u'YomisamaKanji')
             model['css'] = """\
 .card {
  font-family: arial;
@@ -76,8 +76,8 @@ document.getElementById("words").innerHTML = document.getElementById("words").in
             template['afmt'] = u'{{FrontSide}}<hr>{{Kanji}}'
             models.addTemplate(model,template)
             models.add(model)
-        if models.by_name(u'Yomichan') is None:
-            model = models.new(u'Yomichan')
+        if models.by_name('Yomisama') is None:
+            model = models.new('Yomisama')
             model['css'] = """\
 .card {
  font-family: arial;
@@ -90,18 +90,34 @@ document.getElementById("words").innerHTML = document.getElementById("words").in
 .card1 { background-color: #ffff7f; }
 .card2 { background-color: #efff7f; }
             """
-            for field in [u'Vocabulary-Furigana',u'v',u'Vocabulary-English',u'Expression',u'Reading',u'Sentence-English',u'Video',u'Examples+']:
+            for field in ["Vocabulary-Furigana", "v", "Vocabulary-English", "Expression", "Reading", "Sentence-English", "Video", "Examples+", "Goo"]:
                 models.addField(model,models.new_field(field))
-            template = models.new_template(u'Recognition')
+            template = models.new_template("Recognition")
             template['qfmt'] = u'<span style="font-size: 60px">{{v}}</span><br><br><br>\n<span style="font-size: 20px; font-family: \uff2d\uff33 \u30b4\u30b7\u30c3\u30af;">{{kanji:Reading}}</span>\n{{^Reading}}\n<span style="font-size: 20px;">{{kanji:Expression}}</span>\n{{/Reading}}'
-            template['afmt'] = u'<span style="font-size: 50px; font-family: \uff2d\uff33 \u30b4\u30b7\u30c3\u30af;">{{furigana:Vocabulary-Furigana}}</span><br>\n{{^Vocabulary-Furigana}}\n<span style="font-size: 30px"></span><br>\n<span style="font-size: 60px">{{v}}</span><br><br>\n{{/Vocabulary-Furigana}}\n<span style="font-size: 20px; font-family: \uff2d\uff33 \u30b4\u30b7\u30c3\u30af;">{{furigana:Reading}}</span><br>\n{{^Reading}}\n<span style="font-size: 20px;">{{furigana:Expression}}</span>\n{{/Reading}}\n<hr id=answer>\n<img src="{{Video}}"/><br>\n<span style="font-size: 12px; ">{{Vocabulary-English}}</span> <span style="font-size: 15px; color: #5555ff"></span><br>\n<br>\n<span style="font-size: 15px; ">{{Sentence-English}}</span>\n'
+            template['afmt'] = """
+<span style="font-size: 50px; font-family: \uff2d\uff33 \u30b4\u30b7\u30c3\u30af;">{{furigana:Vocabulary-Furigana}}</span><br>
+{{^Vocabulary-Furigana}}
+<br>
+<span style="font-size: 60px">{{v}}</span><br><br>
+{{/Vocabulary-Furigana}}
+<span style="font-size: 20px; font-family: \uff2d\uff33 \u30b4\u30b7\u30c3\u30af;">{{furigana:Reading}}</span>
+<br>
+{{^Reading}}
+<span style="font-size: 20px;">{{furigana:Expression}}</span>
+{{/Reading}}
+<hr id=answer>
+{{^Goo}}<span style="font-size: 12px; ">{{Vocabulary-English}}</span>{{/Goo}}
+{{#Goo}}<span style="font-size: 24px; ">{{Goo}}</span>{{/Goo}}
+<br><br>
+<span style="font-size: 15px; ">{{Sentence-English}}</span>
+"""
             models.addTemplate(model,template)
             models.add(model)
 
         # Create decks if non-existing
         decks = self.collection().decks
-        decks.id(u'Yomichan')
-        decks.id(u'YomichanCards')
+        decks.id('Yomisama')
+        decks.id('YomisamaCards')
             
             
     def addNote(self, deckName, modelName, fields, tags=list()):
@@ -264,7 +280,7 @@ class YomichanPlugin(Yomichan):
         self.anki.addUiAction(separator)
         self.profiles = profiles.getAllProfileClasses()
         self.preventReload = False
-        action = QtWidgets.QAction(QtGui.QIcon(':/img/img/icon_logo_32.png'), '&Yomichan...', self.anki.window())
+        action = QtWidgets.QAction(QtGui.QIcon(':/img/img/icon_logo_32.png'), '&Yomisama...', self.anki.window())
         action.setIconVisibleInMenu(True)
         action.setShortcut('Ctrl+Y')
         action.triggered.connect(self.onShowRequest)
@@ -305,12 +321,12 @@ class YomichanPlugin(Yomichan):
         return allCards
 
 
-    def loadAllTexts(self,rootDir=None):
+    def loadAllTexts(self, rootDir=None):
         if not hasattr(self,'i'):
             self.i = 0
         self.i += 1
         if rootDir is None:
-            rootDir = u"Yomichan"
+            rootDir = "Yomisama"
         
         oldCache = self.fileCache
         self.fileCache = dict()
@@ -371,7 +387,7 @@ def onBeforeStateChange(state, oldState, *args):
         did = aqt.mw.col.decks.selected()
         name = aqt.mw.col.decks.name_if_exists(did)
         path = name.split(u'::')
-        if len(path) > 0 and path[0] == u'Yomichan':
+        if len(path) > 0 and path[0] == 'Yomisama':
             yomichanInstance.onShowRequest()
             completePath = aqt.mw.col.media.dir()
             for i in path:
@@ -431,7 +447,7 @@ def onBeforeStateChange(state, oldState, *args):
             yomichanInstance.preventReload = False
         else:
             yomichanInstance.loadAllTexts()
-        yomichanDeck = aqt.mw.col.decks.by_name(u'Yomichan')
+        yomichanDeck = aqt.mw.col.decks.by_name('Yomisama')
         for name,id in aqt.mw.col.decks.children(yomichanDeck['id']):
             if name not in yomichanInstance.fileCache and aqt.mw.col.decks.get(id)['id']!=1:
                 aqt.mw.col.decks.rem(id)
@@ -441,14 +457,14 @@ def onAfterStateChange(state, oldState, *args):
         did = aqt.mw.col.decks.selected()
         name = aqt.mw.col.decks.name_if_exists(did)
         path = name.split(u'::')
-        if len(path) > 0 and path[0] == u'Yomichan':
+        if len(path) > 0 and path[0] == 'Yomisama':
             yomichanInstance.preventReload = True
             aqt.mw.moveToState('deckBrowser')
 
 addHook('beforeStateChange',onBeforeStateChange)
 addHook('afterStateChange',onAfterStateChange)
     
-def searchYomichanDeck(val):
+def searchYomisamaDeck(val):
     yomichanInstance.searchPath = val.replace(u"::",os.sep)
     yomichanInstance.loadAllTexts(val.replace(u"::",os.sep))
     words = set()
@@ -461,13 +477,13 @@ def searchYomichanDeck(val):
     return where
 
 def onSearch(cmds):
-    def findByYomichanFile(oldfn):
+    def findByYomisamaFile(oldfn):
         def inner(val, args=None):
             val, args = val
-            if val.split("::")[0]=="Yomichan":
-                return searchYomichanDeck(val)
+            if val.split("::")[0]=="Yomisama":
+                return searchYomisamaDeck(val)
             else:
                 return oldfn((val,args))
         return inner    
-    cmds['deck'] = findByYomichanFile(cmds['deck'])    
+    cmds['deck'] = findByYomisamaFile(cmds['deck'])    
 addHook('search',onSearch)

@@ -16,7 +16,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import bs4 as BeautifulSoup
-from urllib.request import urlopen
+# from urllib.request import urlopen
+import requests
 from PyQt5 import QtWidgets, QtCore
 from aqt.webview import AnkiWebView
 from .profile import *
@@ -48,6 +49,7 @@ class VocabularyProfile(GenericProfile):
 
     def __init__(self,reader):
         GenericProfile.__init__(self,reader)
+        self.user_agent_headers={'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11'}
         self.history = []
         self.currentIndex = 0
         self.dockVocab = QtWidgets.QDockWidget(reader)
@@ -181,32 +183,48 @@ class VocabularyProfile(GenericProfile):
         elif cmds[0] == "goo":
             prefix = "http://dictionary.goo.ne.jp"
             self.reader.link = prefix + "/srch/jn/" + definition['expression'] + "/m1u/"
-            page = urlopen(
-              url=prefix + "/srch/jn/" + definition['expression'] + "/m1u/",
-              headers={'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11'}).read()
-            soup = BeautifulSoup.BeautifulSoup(page)
-            if not soup.find("div","contents-wrap-b"):
-                lis = soup.find("div",id="NR-main").find("div","contents-wrap-a-in search").find("ul","list-search-a").findAll("li")
-                for li in lis:
-                    hiragana = li.find("dt","search-ttl-a").contents[0].replace(u"\u2010",u"").replace(u"\u30fb",u"")
-                    idx = hiragana.find(u"\u3010")
-                    if idx>-1:
-                        hiragana = hiragana[:idx]
-                    self.reader.hiragana = [hiragana,definition['reading']]
-                    self.reader.html = soup.contents[0]
-                    if hiragana == definition['reading']:
-                        a = li.find("a")
-                        link = prefix + dict(a.attrs)["href"]
-                        page2 = urlopen(
-                          url=link,
-                          headers={'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11'}).read()
-                        soup = BeautifulSoup.BeautifulSoup(page2)
-            if soup.find("div","contents-wrap-b"):
-                definition['goo'] = '\n'.join(soup.findAll("ol","list-data-b"))
-                self.reader.preferences['onlineDicts']['goo'][definition['expression']+"["+(definition['reading'] or "")+"]"] = definition['goo']
-                self.updateDefinitions()
+            print(prefix + "/srch/jn/" + definition['expression'] + "/m1u/")
+            page = requests.get(
+              prefix + "/srch/jn/" + definition['expression'] + "/m1u/",
+              headers=self.user_agent_headers
+            )
+            if page.status_code == 200:
+                soup = BeautifulSoup.BeautifulSoup(page.content, features="html.parser")
+                if not soup.find("div", "contents-wrap-b"):
+                    lis = soup.find("div", id="NR-main").find("div", "example_sentence").find("ul", "content_list").findAll("li")
+                    for li in lis:
+                        hiragana = li.find("p","title").contents[0].replace("・", "")
+                        idx = hiragana.find("【")
+                        if idx>-1:
+                            hiragana = hiragana[:idx]
+                        self.reader.hiragana = [hiragana, definition['reading']]
+                        self.reader.html = soup.contents[0]
+                        if hiragana == definition['reading']:
+                            a = li.find("a")
+                            link = prefix + dict(a.attrs)["href"]
+                            print(link)
+                            page2 = requests.get(
+                                url=link,
+                                headers=self.user_agent_headers
+                            )
+                            if page2.status_code == 200:
+                                soup = BeautifulSoup.BeautifulSoup(page2.content, features="html.parser")
+                # "else" does not work here, because we might have changed the soup
+                wrapb = soup.find("div", "contents-wrap-b")
+                if wrapb:
+                    goo_definition = ""
+                    ols = wrapb.findAll("ol", "meaning")
+                    if len(ols) > 0:
+                        for meaning in ols:
+                            goo_definition += str(meaning.find("li").find("p"))
+                    else:
+                        goo_definition = str(wrapb.find("div", "contents"))
+
+                    definition['goo'] = goo_definition
+                    self.reader.preferences['onlineDicts']['goo'][definition['expression']+"["+(definition['reading'] or "")+"]"] = definition['goo']
+                    self.updateDefinitions()
         else:
-            if len(cmds)>1 and cmds[1] == "reading":
+            if len(cmds) > 1 and cmds[1] == "reading":
                 definition = definition.copy()
                 definition['summary'] = definition['reading']
                 definition['expression'] = definition['reading']
@@ -282,31 +300,31 @@ class VocabularyProfile(GenericProfile):
 
         def glossary(hide):
             if hide:
-                return u"""<a href='#' onclick='document.getElementById("glossary{1}").style.display="block";this.style.display="none"' href="javascript:void(0);">[Show English]<br></a><span class="glossary" id="glossary{1}" style="display:none;">{0}<br></span>""".format(definition['glossary'],index)
+                return """<a href='#' onclick='document.getElementById("glossary{1}").style.display="block";this.style.display="none"' href="javascript:void(0);">[Show English]<br></a><span class="glossary" id="glossary{1}" style="display:none;">{0}<br></span>""".format(definition['glossary'], index)
             else:
-                return u'<span class="glossary" id="glossary">{0}<br></span>'.format(definition['glossary'])
+                return '<span class="glossary" id="glossary">{0}<br></span>'.format(definition['glossary'])
         foundOnlineDictEntry = False
         if markupExp["defs"] != "":
-            dictionaryEntries = u"<span class='online'>"+ markupExp["defs"] + " " + markupExp["refs"] + "</span>"
+            dictionaryEntries = "<span class='online'>"+ markupExp["defs"] + " " + markupExp["refs"] + "</span>"
             foundOnlineDictEntry = True
         else:
             dictionaryEntries = ""
         if(definition.get("goo")):
-            dictionaryEntries += u"<br><span class='online'>" + definition["goo"] + "</span><br>"
+            dictionaryEntries += "<br><span class='online'>" + definition["goo"] + "</span><br>"
             foundOnlineDictEntry = True
         elif(definition.get('language') == 'Japanese'):
-            dictionaryEntries += u'<br><a href="vocabulary_goo:{0}">[Goo]</a><br>'.format(index)
+            dictionaryEntries += """<br><a href='#' onclick='pycmd("{0}:{1}")'>[Goo]</a><br>""".format("vocabulary_goo", index)
         if(definition.get('language') == 'Japanese'):
-            expression = u'<span class="expression"><a href="jisho:{0}">{0}</a></span>'.format(definition["expression"])
-            reading = reading + '<br>'
+            expression = """<span class='expression'><a href='pycmd("jisho:{0}")'>{0}</a></span>""".format(definition["expression"])
+            reading = reading + "<br>"
         elif(definition.get('language') == 'German'):
             if self.previousExpression == definition['expression']:
-                expression = ''
+                expression = ""
             else:
-                expression = u'<span class="german">{0}</span><br>'.format(definition['expression'] + ' ' + gender)
+                expression = "<span class='german'>{0}</span><br>".format(definition['expression'] + " " + gender)
                 self.previousExpression = definition['expression']
         else:
-            expression = u'<span class="expression">{0}</span>'.format(definition['expression'])
+            expression = "<span class='expression'>{0}</span>".format(definition['expression'])
             reading = reading + '<br>'
         html = u"""
             {1}

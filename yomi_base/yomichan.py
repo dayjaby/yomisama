@@ -26,7 +26,7 @@ class Yomichan:
         """
         if not self.loadLanguages():
             def downloadDictionaries():
-                showInfo(_("No Yomichan dictionaries found\nDownloading now"))
+                showInfo(_("No Yomisama dictionaries found\nDownloading now"))
                 ret = download(aqt.mw, 2027900559)
                 if not ret:
                     raise Exception("Could not download dictionary files")

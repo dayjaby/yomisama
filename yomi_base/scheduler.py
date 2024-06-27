@@ -82,6 +82,7 @@ class Scheduler(SchedulerV2):
                 deck_parents[child.name] = child
         for deck in filecache:
             id = self.col.decks.id(deck,create=False)
+            print(deck)
             if id is not None:
                 if filecache[deck] is None:
                     due = 0

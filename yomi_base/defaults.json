@@ -24,27 +24,27 @@
     },
     "profiles": {
         "kanji": {
-            "deck": "YomichanCards",
+            "deck": "YomisamaCards",
             "fields": {
                 "Glossary": "{glossary}",
                 "Kanji": "{character}",
                 "Kunyomi": "{kunyomi}",
                 "Onyomi": "{onyomi}"
             },
-            "model": "YomichanKanji",
+            "model": "YomisamaKanji",
             "visible": true
         },
         "sentence": {
-            "deck": "YomichanCards",
+            "deck": "YomisamaCards",
             "fields": {
                 "Expression": "{t0}",
                 "Reading": "",
                 "Translation": "{t1}"
             },
-            "model": "YomichanSentence"
+            "model": "YomisamaSentence"
         },
         "vocabulary": {
-            "deck": "YomichanCards",
+            "deck": "YomisamaCards",
             "fields": {
                 "Examples+": "{line} (<a href=\"file:///{filename}\">File</a>)",
                 "Expression": "{line}",
@@ -55,7 +55,7 @@
                 "Vocabulary-Furigana": "{summary}",
                 "v": "{expression}"
             },
-            "model": "Yomichan"
+            "model": "Yomisama"
         }
     },
     "recentFiles": [

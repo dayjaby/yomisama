@@ -169,7 +169,7 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
         perCardMinutes = int(self.currentFile.timePerWord) // 60
         QtWidgets.QMessageBox.information(
             self,
-            'Yomichan', '{0} correct and {1} wrong\n{2} minutes {3} seconds for all\n{4} minutes {5} seconds per card'
+            'Yomisama', '{0} correct and {1} wrong\n{2} minutes {3} seconds for all\n{4} minutes {5} seconds per card'
             .format(self.currentFile.correct,self.currentFile.wrong,
                 totalMinutes,totalSeconds,
                 perCardMinutes,perCardSeconds)
@@ -244,6 +244,8 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
 
     def dropEvent(self, event):
         url = event.mimeData().urls()[0]
+        print(url)
+        print(url.toLocalFile())
         self.openFile(url.toLocalFile())
 
         
@@ -426,7 +428,7 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
             self.currentFile = FileState(filename, self.preferences['stripReadings'], self.languages, self.profiles)
         except IOError:
             self.setStatus(u'Failed to load file {0}'.format(filename))
-            QtWidgets.QMessageBox.critical(self, 'Yomichan', 'Cannot open file for read')
+            QtWidgets.QMessageBox.critical(self, 'Yomisama', 'Cannot open file for read')
             return
         self.listDefinitions.clear()
         self.facts = []
@@ -480,7 +482,7 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
                 fp.close()
         except IOError:
             self.setStatus(u'Failed to save file {0}'.format(filename))
-            QtWidgets.QMessageBox.critical(self, 'Yomichan', 'Cannot open file for write')
+            QtWidgets.QMessageBox.critical(self, 'Yomisama', 'Cannot open file for write')
             return
         self.state.filename = filename
         self.currentFile.filename = filename
@@ -539,6 +541,9 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
             self.comboTags.insertItem(0, tagsJoined)
         self.preferences.updateFactTags(tagsJoined)
         key = self.anki.getModelKey(profile['model'])                                                  
+        print(key, fields)
+        if key not in fields:
+            return False
         value = fields[key]
         ids = self.anki.getNotes(profile['model'],key,value)
         if len(ids) == 0:
@@ -667,7 +672,7 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
         if ok:
             target, ok = QtWidgets.QInputDialog.getText(self, 'Create Subscription', 'Target: ')
         if ok:
-            target = os.path.join(os.path.join(aqt.mw.col.media.dir(),'Yomichan'),target)
+            target = os.path.join(os.path.join(aqt.mw.col.media.dir(),'Yomisama'),target)
             if not os.path.exists(os.path.dirname(target)):
                 os.makedirs(os.path.dirname(target))
             self.preferences['subscriptions'].append({'source':source,'target':target})
@@ -770,7 +775,7 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
                 self.recentIncorrect = None
             
     def showNotFoundWords(self):
-        QtWidgets.QMessageBox.critical(self, 'Yomichan', u'\n'.join(self.currentFile.profiles['vocabulary']['wordsNotFound']))
+        QtWidgets.QMessageBox.critical(self, 'Yomisama', u'\n'.join(self.currentFile.profiles['vocabulary']['wordsNotFound']))
         if len(self.currentFile.profiles['vocabulary']['wordsNotFound']) > 0:
             txt = self.currentFile.profiles['vocabulary']['wordsNotFound'][0]
             lbracket = txt.find(u'[')
