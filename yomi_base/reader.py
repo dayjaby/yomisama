@@ -94,7 +94,6 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
         self.languages = languages
         self.state = self.State()
         self.updates = updates.UpdateFinder()
-        self.zoom = 0
         self.updateRecentFiles()
 
 
@@ -208,7 +207,7 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
 
         font = self.textContent.font()
         font.setFamily(self.preferences['fontFamily'])
-        font.setPointSize(self.preferences['fontSize'] + self.zoom)
+        font.setPointSize(self.preferences['fontSize'] + self.preferences["zoom"])
         self.textContent.setLineWrapMode(QtWidgets.QPlainTextEdit.WidgetWidth if self.preferences['wordWrap'] else QtWidgets.QPlainTextEdit.NoWrap)
         self.textContent.setFont(font)
 
@@ -221,8 +220,8 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
         self.actionToggleFrench.setChecked(self.preferences['french'])
 
     def closeEvent(self, event):
-        self.preferences['windowState'] = str(self.saveState().toBase64())
-        self.preferences['windowGeometry'] = str(self.saveGeometry().toBase64())
+        self.preferences['windowState'] = bytes(self.saveState().toBase64()).decode("utf-8")
+        self.preferences['windowGeometry'] = bytes(self.saveGeometry().toBase64()).decode("utf-8")
         self.preferences['maximized'] = "yes" if self.isMaximized() else "no"
 
         self.closeFile()
@@ -244,8 +243,6 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
 
     def dropEvent(self, event):
         url = event.mimeData().urls()[0]
-        print(url)
-        print(url.toLocalFile())
         self.openFile(url.toLocalFile())
 
         
@@ -324,7 +321,7 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
         if font.pointSize() < 72:
             font.setPointSize(font.pointSize() + 1)
             self.textContent.setFont(font)
-            self.zoom += 1
+            self.preferences["zoom"] += 1
 
 
     def onActionZoomOut(self):
@@ -332,15 +329,15 @@ class MainWindowReader(QtWidgets.QMainWindow, reader_ui.Ui_MainWindowReader):
         if font.pointSize() > 1:
             font.setPointSize(font.pointSize() - 1)
             self.textContent.setFont(font)
-            self.zoom -= 1
+            self.preferences["zoom"] -= 1
 
 
     def onActionZoomReset(self):
-        if self.zoom:
+        if self.preferences["zoom"]:
             font = self.textContent.font()
-            font.setPointSize(font.pointSize() - self.zoom)
+            font.setPointSize(font.pointSize() - self.preferences["zoom"])
             self.textContent.setFont(font)
-            self.zoom = 0
+            self.preferences["zoom"] = 0
 
 
     def onActionFind(self):

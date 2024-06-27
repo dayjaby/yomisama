@@ -91,17 +91,17 @@ class VocabularyProfile(GenericProfile):
         }
         self.onLookup(d,0,sentenceAndLine=False)
 
-    def fixHtml(self,html,appendToHistory=True):
+    def fixHtml(self, html, appendToHistory=True):
         if html.find(self.buildEmpty()) == -1 and appendToHistory:
             self.history.append((html,list(self.definitions),self.defBody))
         back = len(self.history)>1
         #self.currentIndex > 0
         #forward = self.currentIndex < len(self.history)-1
         if back:
-            backHtml = "<a href='vocabulary_back:0'>&lt;&lt;Back</a>" if back else ""
+            backHtml = "<a href='#' onclicked='vocabulary_back:0'>&lt;&lt;Back</a>" if back else ""
             forwardHtml = ""
             #"<a href='vocabulary_forward:0'>Forward&gt;&gt;</a>" if forward else ""
-            return u"<div>{1} {2}</div><br>{0}".format(html,backHtml,forwardHtml)
+            return u"<div>{1} {2}</div><br>{0}".format(html, backHtml, forwardHtml)
         else:
             return html
 
@@ -112,13 +112,14 @@ class VocabularyProfile(GenericProfile):
         print(url)
         command, index = url.split(':')
         if command == "jisho":
-            url = QtCore.QUrl(self.reader.preferences["linkToVocab"].format(index))
-            QtWidgets.QDesktopServices().openUrl(url)
+            pass
+            # url = QtCore.QUrl(self.reader.preferences["linkToVocab"].format(index))
+            # QtWidgets.QDesktopServices().openUrl(url)
         elif command == "vocabulary_back":
             if len(self.history)>1:
                 self.history.pop()
                 html, definitions, body = self.history[-1]
-                html = self.fixHtml(html,appendToHistory=False)
+                html = self.fixHtml(html, appendToHistory=False)
                 self.textField.setHtml(html)
                 self.definitions = definitions
                 self.defBody = body
@@ -193,7 +194,7 @@ class VocabularyProfile(GenericProfile):
                 if not soup.find("div", "contents-wrap-b"):
                     lis = soup.find("div", id="NR-main").find("div", "example_sentence").find("ul", "content_list").findAll("li")
                     for li in lis:
-                        hiragana = li.find("p","title").contents[0].replace("・", "")
+                        hiragana = li.find("p","title").contents[0].replace("・", "").replace("‐", "")
                         idx = hiragana.find("【")
                         if idx>-1:
                             hiragana = hiragana[:idx]
@@ -233,6 +234,9 @@ class VocabularyProfile(GenericProfile):
                 self.addFact(definition)
             elif cmds[0] == "overwrite":
                 self.overwriteFact(definition)
+            elif cmds[0] == "overwrite_reading":
+                # not implemented
+                pass
 
     def markup(self, definition):
         if definition.get('reading'):
@@ -290,7 +294,7 @@ class VocabularyProfile(GenericProfile):
             links += """<a href='#' onclick='pycmd(\"{0}:{1}\")'><img src="qrc:///img/img/icon_add_expression.png" align="right"/></a>""".format("vocabulary_add", index)
         else:
             if allowOverwrite:
-                links += """<a href='#' onclick='pycmd(\"{0}:{1}\")'><img src="qrc:///img/img/icon_overwrite_expression.png" align="right"/></a>""".format("vocabulary_write", index)
+                links += """<a href='#' onclick='pycmd(\"{0}:{1}\")'><img src="qrc:///img/img/icon_overwrite_expression.png" align="right"/></a>""".format("vocabulary_overwrite", index)
         if markupReading is not None and definition.get('language') == 'Japanese':
             if self.ankiIsFactValid('vocabulary', markupReading, index):
                 links += """<a href='#' onclick='pycmd(\"{0}:{1}\")'><img src="qrc:///img/img/icon_add_reading.png" align="right"/></a>""".format("vocabulary_add_reading", index)
@@ -315,7 +319,7 @@ class VocabularyProfile(GenericProfile):
         elif(definition.get('language') == 'Japanese'):
             dictionaryEntries += """<br><a href='#' onclick='pycmd("{0}:{1}")'>[Goo]</a><br>""".format("vocabulary_goo", index)
         if(definition.get('language') == 'Japanese'):
-            expression = """<span class='expression'><a href='pycmd("jisho:{0}")'>{0}</a></span>""".format(definition["expression"])
+            expression = """<span class='expression'><a href='#' onclick='pycmd("jisho:{0}")'>{0}</a></span>""".format(definition["expression"])
             reading = reading + "<br>"
         elif(definition.get('language') == 'German'):
             if self.previousExpression == definition['expression']:

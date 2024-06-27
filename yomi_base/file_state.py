@@ -258,8 +258,8 @@ class FileState:
         for k,profile in self.profiles.items():
             for word in profile['wordsAll']:
                 if word in profile['wordsBad']:
-                    sched.earlyAnswerCard(profile['wordsBad'][word],1,self.timePerWord)
+                    sched.earlyAnswerCard(profile['wordsBad'][word], 1, self.timePerWord)
                     self.wrong += 1
                 else:
-                    sched.earlyAnswerCard(profile['wordsAll'][word],3,self.timePerWord)
+                    sched.earlyAnswerCard(profile['wordsAll'][word], 3, self.timePerWord)
                     self.correct += 1

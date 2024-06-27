@@ -7,6 +7,7 @@ import random
 import time
 import anki
 from anki.rsbackend import DeckTreeNode
+from anki.consts import CARD_TYPE_NEW, QUEUE_TYPE_NEW
 
 
 class Scheduler(SchedulerV2):
@@ -25,46 +26,42 @@ class Scheduler(SchedulerV2):
         self.weekDays = weekDays
         self.dueCache = dict()
         
-    def answerCard(self,card,ease):
-        if ease == 1:
-            for m, value in card.note().items():
-                if m[:9] == u"ConnectTo":
-                    model = self.col.models.byName(m[9:])
-                    if model is None:
-                        continue
-                    key = model[u"flds"][0][u"name"]
-                    cards = self.col.findCards(key + u':"' + value + u'" note:' + m[9:])
-                    for connectedCardId in cards:
-                        connectedCard = self.col.getCard(connectedCardId)
-                        connectedCard.startTimer()
-                        SchedulerV2.answerCard(self,connectedCard,ease)
-        SchedulerV2.answerCard(self,card,ease)
-        
-    def earlyAnswerCard(self,card,ease,timeUsed=None):
+    # def answerCard(self,card,ease):
+    #     if ease == 1:
+    #         for m, value in card.note().items():
+    #             if m[:9] == u"ConnectTo":
+    #                 model = self.col.models.byName(m[9:])
+    #                 if model is None:
+    #                     continue
+    #                 key = model[u"flds"][0][u"name"]
+    #                 cards = self.col.findCards(key + u':"' + value + u'" note:' + m[9:])
+    #                 for connectedCardId in cards:
+    #                     connectedCard = self.col.getCard(connectedCardId)
+    #                     connectedCard.startTimer()
+    #                     SchedulerV2.answerCard(self, connectedCard, ease)
+    #     SchedulerV2.answerCard(self, card, ease)
+
+    def earlyAnswerCard(self, card, ease, timeUsed=None):
         if card.queue < 0:
             card.queue = 0
         if timeUsed is None:
             card.start_timer()
         else:
-            card.timerStarted = time.time() - timeUsed
-        self.answerCard(card,ease)
-    
-    def _updateRevIvl(self, card, ease):
-        idealIvl = self._nextRevIvl(card, ease)
-        adjIv1 = self._adjRevIvl(card, idealIvl)
-        if card.queue == 2:
-            card.ivl = card.ivl + math.ceil(self._smoothedIvl(card)*(adjIv1 - card.ivl))
+            card.timer_started = time.time() - timeUsed
+
+        if ease == 1:
+            self.set_due_date([card.id], "0!")
         else:
-            card.ivl = adjIvl
-        card.ivl = random.randint(int(card.ivl * (1-self.scheduleVariationPercent/100.0)),int(card.ivl * (1+self.scheduleVariationPercent/100)))
-        counter = 0
-        while counter < 4 and not self.weekDays[(datetime.date.today() + datetime.timedelta(card.ivl)).weekday()] and card.ivl > 1:
-            card.ivl += random.randint(0,1) * 2 - 1
-            counter = counter + 1
-            
-    def _smoothedIvl(self,card):
+            if card.type == CARD_TYPE_NEW or card.queue == QUEUE_TYPE_NEW:
+                self.set_due_date([card.id], "1!")
+            else:
+                ivl = 1 + card.ivl * 2
+                self.set_due_date([card.id], str(ivl) + "!")
+
+
+    def _smoothedIvl(self, card):
         if card.ivl > 0 and card.queue == 2:
-            return max(self.minimumGain,float(card.ivl - self._daysEarly(card))/card.ivl)
+            return max(self.minimumGain,float(card.ivl - self._daysEarly(card)) / card.ivl)
         else:
             return 1
         
@@ -81,8 +78,7 @@ class Scheduler(SchedulerV2):
             if child.name == "Yomichan" or child.name == "Yomisama":
                 deck_parents[child.name] = child
         for deck in filecache:
-            id = self.col.decks.id(deck,create=False)
-            print(deck)
+            id = self.col.decks.id(deck, create=False)
             if id is not None:
                 if filecache[deck] is None:
                     due = 0
@@ -95,8 +91,10 @@ class Scheduler(SchedulerV2):
                     new = filecache[deck].count('wordsNotFound')
                 path = deck.split("::")
                 parent_path = "::".join(path[:-1])
+                # print(deck, path, parent_path)
                 # try to find parent in the already existing tree
                 node = data
+                found = False
                 for child_name in path:
                     found = False
                     for child in node.children:
@@ -105,7 +103,11 @@ class Scheduler(SchedulerV2):
                             found = True
                             break
                     if not found:
-                        raise Exception("Could not find child: {} in {}".format(child_name, deck))
+                        print("Could not find child: {} in {}".format(child_name, deck))
+                        break
+
+                if not found:
+                    continue
                 parent = node
 
                 node.review_count = due
@@ -127,9 +129,5 @@ class Scheduler(SchedulerV2):
                         data.review_count += due
                         data.new_count += new
 
-                """node = DeckTreeNode(name=path[-1], deck_id=id, review_count=due, learn_count=0, new_count=new)
-                parent.children.append(node)
-                deck_parents[deck] = node"""
-                print(deck, due)
                 self.dueCache[deck] = due
         return data

@@ -23,6 +23,8 @@ from anki.utils import ids2str, int_time
 
 class Anki:
     def createYomichanModel(self):
+        if self.collection() is None:
+            return
         models = self.collection().models
         if models.by_name(u'YomisamaSentence') is None:
             model = models.new(u'YomisamaSentence')
@@ -333,41 +335,36 @@ class YomichanPlugin(Yomichan):
         self.allCards = self.fetchAllCards()
         if self.allCards is not None:
             mediadir = self.anki.collection().media.dir()
-            yomimedia = os.path.join(mediadir,rootDir)
+            yomimedia = os.path.join(mediadir, rootDir)
             def processFile(file,relDir):
               if file[-4:] in extensions['text']:
-                  path = os.path.join(relDir,file)
+                  path = os.path.join(relDir, file)
                   fullPath = u'::'.join(path.split(os.sep))
                   if fullPath in oldCache:
                       fileState = oldCache[fullPath]
                       fileState.load()
                   else:
-                      fileState = FileState(os.path.join(mediadir,path),self.preferences['stripReadings'],profiles=self.profiles)
+                      fileState = FileState(os.path.join(mediadir, path), self.preferences['stripReadings'], profiles=self.profiles)
                   self.fileCache[fullPath] = fileState
                   # create deck if necessary
-                  self.anki.collection().decks.id(fullPath,create=True)
-                  fileState.findVocabulary(self.anki.collection().sched,self.allCards,needContent=False)
+                  self.anki.collection().decks.id(fullPath, create=True)
+                  fileState.findVocabulary(self.anki.collection().sched, self.allCards, needContent=False)
 
             if os.path.isdir(yomimedia):
                 for root,dirs,files in os.walk(yomimedia):
-                    relDir = os.path.relpath(root,mediadir)
+                    relDir = os.path.relpath(root, mediadir)
                     for file in files:
-                        processFile(file,relDir)
+                        processFile(file, relDir)
                     for dir in dirs:
-                        path = os.path.join(relDir,dir)
+                        path = os.path.join(relDir, dir)
                         self.fileCache[u'::'.join(path.split(os.sep))] = None
             elif os.path.isfile(yomimedia):
-                processFile(os.path.basename(yomimedia),os.path.dirname(rootDir))
-            
+                processFile(os.path.basename(yomimedia), os.path.dirname(rootDir))
 
 
     def onWindowClose(self):
         self.window = None
-        ### this becomes obsolote due to onAfterStateChange
-        #if not sum(list(aqt.mw.col.sched.counts())):
-        #    aqt.mw.moveToState('deckBrowser')
-        
-        
+
         
     def getFileCache(self):
         return self.fileCache
@@ -379,9 +376,11 @@ yomichanInstance = YomichanPlugin()
 def onBeforeStateChange(state, oldState, *args):
     yomichanInstance.newestState = state
     yomichanInstance.anki.createYomichanModel()
-    if not getattr(aqt.mw.col.decks,"customDeckManager",None):
+    if aqt.mw.col is None:
+        return
+    if not getattr(aqt.mw.col.decks, "customDeckManager", None):
         aqt.mw.col.decks = DeckManager(aqt.mw.col,yomichanInstance.getFileCache())
-    if not getattr(aqt.mw.errorHandler,"customErrorHandler",None):
+    if not getattr(aqt.mw.errorHandler, "customErrorHandler", None):
         aqt.mw.errorHandler = ErrorHandler(aqt.mw)
     if state == 'overview':
         did = aqt.mw.col.decks.selected()
@@ -391,7 +390,7 @@ def onBeforeStateChange(state, oldState, *args):
             yomichanInstance.onShowRequest()
             completePath = aqt.mw.col.media.dir()
             for i in path:
-                completePath = os.path.join(completePath,i)
+                completePath = os.path.join(completePath, i)
             # if clicked on a directory, choose deck with most due cards
             if os.path.isdir(completePath):
                 maxDue = 0
@@ -438,6 +437,7 @@ def onBeforeStateChange(state, oldState, *args):
             week_days = yomichanInstance.preferences["weekDays"]
             def deck_due_tree(*args, **kwargs):
                 raise Exception("deck_due_tree")
+
             aqt.mw.col.sched.deck_due_tree = deck_due_tree
             aqt.mw.col.sched = Scheduler(aqt.mw.col,
                 yomichanInstance.getFileCache,
@@ -453,6 +453,8 @@ def onBeforeStateChange(state, oldState, *args):
                 aqt.mw.col.decks.rem(id)
                 
 def onAfterStateChange(state, oldState, *args):
+    if aqt.mw is None:
+        return
     if state == 'overview':
         did = aqt.mw.col.decks.selected()
         name = aqt.mw.col.decks.name_if_exists(did)

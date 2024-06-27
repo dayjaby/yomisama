@@ -19,6 +19,7 @@
     "loadRecentFile": false,
     "lookupKey": 3,
     "maxResults": 20,
+    "zoom": 0,
     "onlineDicts": {
         "goo": {}
     },
